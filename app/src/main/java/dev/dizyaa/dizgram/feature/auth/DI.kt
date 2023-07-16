@@ -7,6 +7,6 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val authModule = module {
-    single<AuthRepository> { TelegramAuthRepository(get(), get()) }
+    single<AuthRepository> { TelegramAuthRepository(get()) }
     viewModel { AuthViewModel(get()) }
 }

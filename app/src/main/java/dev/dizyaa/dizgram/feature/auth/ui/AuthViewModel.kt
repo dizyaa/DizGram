@@ -14,7 +14,7 @@ class AuthViewModel(
 
     init {
         viewModelScope.launch {
-            repository.getAuthStatusFlow().collect {
+            repository.authStatus.collect {
                 Timber.d(it.toString())
                 setState { copy(authStatus = it) }
                 if (it == AuthStatus.Ready) {

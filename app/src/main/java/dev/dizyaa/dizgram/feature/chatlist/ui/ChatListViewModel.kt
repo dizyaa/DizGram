@@ -1,9 +1,13 @@
 package dev.dizyaa.dizgram.feature.chatlist.ui
 
 import dev.dizyaa.dizgram.core.uihelpers.StateViewModel
+import dev.dizyaa.dizgram.feature.chatlist.data.ChatRepository
 
-class ChatListViewModel:
-    StateViewModel<ChatListContract.State, ChatListContract.Effect>() {
+class ChatListViewModel(
+    chatRepository: ChatRepository,
+) : StateViewModel<ChatListContract.State, ChatListContract.Effect>() {
+
+
 
     override fun setInitialState() = ChatListContract.State.Empty
 
