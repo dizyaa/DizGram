@@ -12,9 +12,9 @@ class CoreClient(
 ): TdRepository(context) {
 
     suspend fun start() {
-        getUpdatesFlow<TdApi.AuthorizationState>()
+        getUpdatesFlow<TdApi.UpdateAuthorizationState>()
             .collect {
-                processAuth(it)
+                processAuth(it.authorizationState)
             }
     }
 

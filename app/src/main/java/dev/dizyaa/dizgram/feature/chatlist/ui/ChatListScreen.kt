@@ -20,6 +20,7 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.items
 import dev.dizyaa.dizgram.R
 import dev.dizyaa.dizgram.core.uihelpers.SIDE_EFFECTS_KEY
+import dev.dizyaa.dizgram.feature.chatlist.domain.Chat
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -61,7 +62,7 @@ fun ChatList(
     ) {
         items(state.chatList) {
             ChatListItem(
-                chatUi = it,
+                chat = it,
                 onClick = {
                     viewModel.selectChat(it)
                 }
@@ -72,14 +73,14 @@ fun ChatList(
 
 @Composable
 fun ChatListItem(
-    chatUi: ChatUi,
+    chat: Chat,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Chip(
         label = {
             Text(
-                text = chatUi.name,
+                text = chat.name,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -98,9 +99,3 @@ fun ChatListItem(
             .fillMaxWidth()
     )
 }
-
-data class ChatUi(
-    val image: String,
-    val name: String,
-    val lastMessage: String,
-)

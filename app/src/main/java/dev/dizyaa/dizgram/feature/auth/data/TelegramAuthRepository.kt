@@ -11,8 +11,8 @@ class TelegramAuthRepository(
     context: TdContext,
 ): TdRepository(context), AuthRepository {
 
-    override val authStatus: Flow<AuthStatus> = getUpdatesFlow<TdApi.AuthorizationState>()
-        .map { mapAuthState(it) }
+    override val authStatus: Flow<AuthStatus> = getUpdatesFlow<TdApi.UpdateAuthorizationState>()
+        .map { mapAuthState(it.authorizationState) }
 
     override suspend fun authByPhoneNumber(phoneNumber: String) {
         execute<TdApi.Object>(

@@ -14,24 +14,29 @@ abstract class TdRepository(
     /**
      * Execute Telegram function and wait response
      */
-    internal suspend inline fun <reified T: TdApi.Object> execute(function: TdApi.Function) =
-        suspendCoroutine { continuation ->
-            context.client.send(
-                function,
-                {
-                    if (it is T) {
-                        continuation.resume(it)
-                    } else {
-                        val ex = Exception("Response of ${function::class} not is ${T::class}!")
-                        continuation.resumeWithException(ex)
-                    }
-                },
-                {
-                    continuation.resumeWithException(it)
-                }
-            )
-        }
+    internal suspend inline fun <reified T: TdApi.Object> execute(
+        function: TdApi.Function,
+        crossinline onError: (TdApi.Error) -> Unit = { }
+    ) = suspendCoroutine { continuation ->
+        context.client.send(
+            function,
+            {
+                when (it) {
+                    is T -> continuation.resume(it)
 
-    internal inline fun <reified T: TdApi.Object> getUpdatesFlow(): Flow<T> =
+                    is TdApi.Error -> onError(it)
+
+                    else -> continuation.resumeWithException(
+                        exception = Exception("Response of ${function::class} not is ${T::class}!")
+                    )
+                }
+            },
+            {
+                continuation.resumeWithException(it)
+            }
+        )
+    }
+
+    internal inline fun <reified T: TdApi.Update> getUpdatesFlow(): Flow<T> =
         context.updates.filterIsInstance(T::class)
 }

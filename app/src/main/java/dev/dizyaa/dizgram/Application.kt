@@ -7,6 +7,8 @@ import dev.dizyaa.dizgram.feature.auth.authModule
 import dev.dizyaa.dizgram.feature.chatlist.chatListModule
 import dev.dizyaa.dizgram.feature.configuration.configurationModule
 import dev.dizyaa.dizgram.feature.datagates.dataGatesModule
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -19,6 +21,7 @@ import timber.log.Timber
 class Application: Application() {
 
     private var scope = MainScope()
+    @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate() {
         super.onCreate()
         startKoin {
@@ -26,9 +29,10 @@ class Application: Application() {
             androidContext(this@Application)
             modules(modules)
         }
+
         Timber.plant(Timber.DebugTree())
 
-        scope.launch {
+        GlobalScope.launch {
             get<CoreClient>().start()
         }
     }

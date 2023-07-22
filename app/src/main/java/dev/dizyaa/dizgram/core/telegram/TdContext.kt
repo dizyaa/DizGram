@@ -1,6 +1,7 @@
 package dev.dizyaa.dizgram.core.telegram
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
@@ -17,7 +18,12 @@ class TdContext(
         ::handleExceptionDefault,
     )
 
-    private val _updates: MutableSharedFlow<TdApi.Object> = MutableSharedFlow()
+    private val _updates: MutableSharedFlow<TdApi.Object> =
+        MutableSharedFlow(
+            replay = 40,
+            extraBufferCapacity = 100,
+            onBufferOverflow = BufferOverflow.SUSPEND
+        )
     val updates: SharedFlow<TdApi.Object> = _updates
 
     private fun handleResult(obj: TdApi.Object) {

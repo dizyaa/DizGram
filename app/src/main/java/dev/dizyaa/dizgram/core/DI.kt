@@ -8,12 +8,11 @@ import kotlinx.coroutines.SupervisorJob
 import org.koin.dsl.module
 
 val coreModule = module {
-    single { TdContext(CoroutineScope(Dispatchers.Main+ SupervisorJob())) }
+    single { TdContext(CoroutineScope(Dispatchers.IO + SupervisorJob())) }
     single(createdAtStart = true) {
         CoreClient(
             get(),
             get(),
-            CoroutineScope(Dispatchers.IO + SupervisorJob()),
             get(),
         )
     }
