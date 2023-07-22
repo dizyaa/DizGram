@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,62 +30,65 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
 import dev.dizyaa.dizgram.core.uihelpers.NumberKeyboard
+import dev.dizyaa.dizgram.core.uihelpers.SIDE_EFFECTS_KEY
 import dev.dizyaa.dizgram.core.uihelpers.TextRemoteInput
 import dev.dizyaa.dizgram.feature.auth.domain.AuthStatus
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun AuthDestination(
     navController: NavController,
-    viewModel: AuthViewModel = koinViewModel()
 ) {
+    val viewModel: AuthViewModel = koinViewModel()
+
     AuthScreen(
-        viewModel = viewModel
+        onNavigation = {
+            when (it) {
+                is AuthContract.Effect.Navigation.ChatList -> {
+                    navController.navigate("chatList")
+                }
+            }
+        },
+        onEvent = { viewModel.setEvent(it) },
+        stateFlow = viewModel.state,
+        effectFlow = viewModel.effect,
     )
-
-    val effect by viewModel.effect.collectAsState(initial = null)
-
-    when (effect) {
-        is AuthContract.Effect.Navigation.ChatList -> {
-            navController.navigate("chatList")
-        }
-        else -> Unit
-    }
 }
 
 @Composable
 fun AuthScreen(
-    viewModel: AuthViewModel,
+    stateFlow: StateFlow<AuthContract.State>,
+    effectFlow: Flow<AuthContract.Effect>,
+    onEvent: (AuthContract.Event) -> Unit,
+    onNavigation: (AuthContract.Effect.Navigation) -> Unit,
 ) {
-    val status by viewModel.state.collectAsState()
+    val state by stateFlow.collectAsState()
+
+    LaunchedEffect(SIDE_EFFECTS_KEY) {
+        effectFlow.collect {
+            when (it) {
+                is AuthContract.Effect.Navigation -> onNavigation(it)
+            }
+        }
+    }
 
     Scaffold {
-        when (status.authStatus) {
+        when (state.authStatus) {
             AuthStatus.WaitPhoneNumber -> PhoneNumber(
-                onConfirm = { viewModel.enterByPhoneNumber(it) }
+                onConfirm = { onEvent(AuthContract.Event.EnterByPhoneNumber(it)) }
             )
             AuthStatus.WaitCode -> Code(
-                onConfirm = { viewModel.loginByCode(it) }
+                onConfirm = { onEvent(AuthContract.Event.LoginByCode(it)) }
             )
             AuthStatus.WaitPassword -> Password(
-                onConfirm = { viewModel.loginByPassword(it) }
+                onConfirm = { onEvent(AuthContract.Event.LoginByPassword(it)) }
             )
             AuthStatus.WaitOtherDeviceConfirmation -> OtherConfirmation()
             AuthStatus.WaitRegistration -> Registration()
-            AuthStatus.Ready -> Ready()
+            AuthStatus.Ready -> Unit
         }
-    }
-}
-
-@Composable
-private fun Ready() {
-    Box(
-        Modifier.fillMaxSize()
-    ) {
-        Text(
-            text = "Ready status",
-            modifier = Modifier.align(Alignment.Center)
-        )
     }
 }
 

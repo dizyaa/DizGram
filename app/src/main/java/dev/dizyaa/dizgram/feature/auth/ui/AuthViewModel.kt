@@ -6,17 +6,16 @@ import dev.dizyaa.dizgram.core.uihelpers.StateViewModel
 import dev.dizyaa.dizgram.feature.auth.data.AuthRepository
 import dev.dizyaa.dizgram.feature.auth.domain.AuthStatus
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 class AuthViewModel(
     private val repository: AuthRepository,
-): StateViewModel<AuthContract.State, AuthContract.Effect>() {
+): StateViewModel<AuthContract.State, AuthContract.Event, AuthContract.Effect>() {
 
     init {
         viewModelScope.launch {
             repository.authStatus.collect {
-                Timber.d(it.toString())
                 setState { copy(authStatus = it) }
+
                 if (it == AuthStatus.Ready) {
                     setEffect { AuthContract.Effect.Navigation.ChatList }
                 }
@@ -24,7 +23,18 @@ class AuthViewModel(
         }
     }
 
-    override fun setInitialState() = AuthContract.State.Empty
+    override fun setInitialState() = AuthContract.State(
+        isLoading = false,
+        authStatus = AuthStatus.WaitPhoneNumber,
+    )
+
+    override fun handleEvents(event: AuthContract.Event) {
+        when (event) {
+            is AuthContract.Event.LoginByPassword -> loginByPassword(event.password)
+            is AuthContract.Event.LoginByCode -> loginByCode(event.code)
+            is AuthContract.Event.EnterByPhoneNumber -> enterByPhoneNumber(event.phoneNumber)
+        }
+    }
 
     override fun onError(exception: Exception) {
 
@@ -34,7 +44,7 @@ class AuthViewModel(
         setState { copy(isLoading = loading) }
     }
 
-    fun enterByPhoneNumber(phoneNumber: String) {
+    private fun enterByPhoneNumber(phoneNumber: String) {
         if (phoneNumber.isNotBlank() && phoneNumber.isDigitsOnly()) {
             makeRequest {
                 repository.authByPhoneNumber(phoneNumber)
@@ -42,7 +52,7 @@ class AuthViewModel(
         }
     }
 
-    fun loginByCode(code: String) {
+    private fun loginByCode(code: String) {
         if (code.length >= 4) {
             makeRequest {
                 repository.authByCode(code)
@@ -50,13 +60,12 @@ class AuthViewModel(
         }
     }
 
-    fun loginByPassword(password: String) {
+    private fun loginByPassword(password: String) {
         if (password.isNotEmpty()) {
             makeRequest {
                 repository.authByPassword(password.trim())
             }
         }
     }
-
 }
 

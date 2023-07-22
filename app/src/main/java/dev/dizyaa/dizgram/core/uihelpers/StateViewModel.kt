@@ -3,17 +3,17 @@ package dev.dizyaa.dizgram.core.uihelpers
 import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.UnknownHostException
+import kotlin.coroutines.CoroutineContext
 
 
 @Stable
@@ -23,14 +23,15 @@ interface UiState {
 
 interface UiEffect
 
+interface UiEvent
+
 const val SIDE_EFFECTS_KEY = "side-effects_key"
 
 abstract class StateViewModel<
         State : UiState,
-        Effect: UiEffect
+        Event : UiEvent,
+        Effect : UiEffect
         >: ViewModel() {
-
-    protected val gson: Gson = GsonBuilder().create()
 
     abstract fun setInitialState(): State
 
@@ -45,6 +46,21 @@ abstract class StateViewModel<
     val effect: Flow<Effect> = _effect.receiveAsFlow()
     private val loadingFlags: MutableSet<Int> = mutableSetOf()
 
+
+    private val _event: MutableSharedFlow<Event> = MutableSharedFlow()
+
+    protected abstract fun handleEvents(event: Event)
+
+
+    init {
+        subscribeToEvents()
+    }
+
+
+    fun setEvent(event: Event) {
+        viewModelScope.launch { _event.emit(event) }
+    }
+
     protected fun setState(reducer: State.() -> State) {
         val newState = _state.value.reducer()
         _state.value = newState
@@ -56,6 +72,7 @@ abstract class StateViewModel<
     }
 
     abstract fun onError(exception: Exception)
+
     abstract fun onLoading(loading: Boolean)
 
     protected fun <T> makeRequest(
@@ -63,12 +80,13 @@ abstract class StateViewModel<
         onFailure: (Exception) -> Unit = { onError(it) },
         handleNetworkFailure: Boolean = false,
         withIndication: Boolean = true,
+        context: CoroutineContext = Dispatchers.IO,
         request: suspend () -> (T),
     ) {
         val flag = request.hashCode()
 
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
+            withContext(context) {
                 try {
                     if (withIndication) addLoadingFlag(flag)
                     onLoadingChange(true)
@@ -81,6 +99,14 @@ abstract class StateViewModel<
                     if (withIndication) removeLoadingFlag(flag)
                     onLoadingChange(false)
                 }
+            }
+        }
+    }
+
+    private fun subscribeToEvents() {
+        viewModelScope.launch {
+            _event.collect {
+                handleEvents(it)
             }
         }
     }

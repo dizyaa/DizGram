@@ -7,7 +7,7 @@ import dev.dizyaa.dizgram.feature.chatlist.domain.ChatFilter
 
 class ChatListViewModel(
     private val chatRepository: ChatRepository,
-) : StateViewModel<ChatListContract.State, ChatListContract.Effect>() {
+) : StateViewModel<ChatListContract.State, ChatListContract.Event, ChatListContract.Effect>() {
 
     init {
         loadChats(ChatFilter.Main)
@@ -31,6 +31,12 @@ class ChatListViewModel(
 
     override fun setInitialState() = ChatListContract.State.Empty
 
+    override fun handleEvents(event: ChatListContract.Event) {
+        when (event) {
+            is ChatListContract.Event.SelectChat -> selectChat(event.chat)
+        }
+    }
+
     override fun onLoading(loading: Boolean) {
         setState { copy(isLoading = loading) }
     }
@@ -46,7 +52,7 @@ class ChatListViewModel(
         }
     }
 
-    fun selectChat(chat: Chat) {
+    private fun selectChat(chat: Chat) {
 
     }
 }
