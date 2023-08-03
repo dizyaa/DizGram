@@ -1,16 +1,13 @@
 package dev.dizyaa.dizgram.core.telegram
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.launch
 import org.drinkless.td.libcore.telegram.Client
 import org.drinkless.td.libcore.telegram.TdApi
 import timber.log.Timber
 
 class TdContext(
-    private val coroutineScope: CoroutineScope,
 ) {
     internal val client: Client = Client.create(
         ::handleResult,
@@ -20,22 +17,23 @@ class TdContext(
 
     private val _updates: MutableSharedFlow<TdApi.Object> =
         MutableSharedFlow(
-            replay = 40,
-            extraBufferCapacity = 100,
-            onBufferOverflow = BufferOverflow.SUSPEND
+            replay = 500,
+            extraBufferCapacity = 500,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST
         )
     val updates: SharedFlow<TdApi.Object> = _updates
 
+    @Synchronized
     private fun handleResult(obj: TdApi.Object) {
-        coroutineScope.launch {
-            _updates.emit(obj)
-        }
+        _updates.tryEmit(obj)
     }
 
+    @Synchronized
     private fun handleException(throwable: Throwable) {
         Timber.e(throwable)
     }
 
+    @Synchronized
     private fun handleExceptionDefault(throwable: Throwable) {
         handleException(throwable)
     }

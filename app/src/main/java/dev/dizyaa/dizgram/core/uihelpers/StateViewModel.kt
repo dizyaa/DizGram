@@ -80,7 +80,7 @@ abstract class StateViewModel<
         onFailure: (Exception) -> Unit = { onError(it) },
         handleNetworkFailure: Boolean = false,
         withIndication: Boolean = true,
-        context: CoroutineContext = Dispatchers.IO,
+        context: CoroutineContext = Dispatchers.Default,
         request: suspend () -> (T),
     ) {
         val flag = request.hashCode()

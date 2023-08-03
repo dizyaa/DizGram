@@ -87,7 +87,8 @@ fun AuthScreen(
             )
             AuthStatus.WaitOtherDeviceConfirmation -> OtherConfirmation()
             AuthStatus.WaitRegistration -> Registration()
-            AuthStatus.Ready -> Unit
+            AuthStatus.Ready -> Ready()
+            else -> Unit
         }
     }
 }
@@ -230,6 +231,23 @@ private fun Registration(
     ) {
         Text(
             text = "Need registration. Pls get registration on mobile or desktop device",
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .align(Alignment.Center)
+        )
+    }
+}
+
+@Composable
+private fun Ready(
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        Text(
+            text = "Ready. Please wait",
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .align(Alignment.Center)

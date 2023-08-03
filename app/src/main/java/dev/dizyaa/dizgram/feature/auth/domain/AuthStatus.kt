@@ -6,5 +6,8 @@ enum class AuthStatus {
     WaitCode,
     WaitRegistration,
     WaitPassword,
+    WaitEncryptedKey,
+    WaitParams,
     Ready,
+
 }

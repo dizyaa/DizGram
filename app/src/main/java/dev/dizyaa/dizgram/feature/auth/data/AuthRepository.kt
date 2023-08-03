@@ -8,4 +8,7 @@ interface AuthRepository {
     suspend fun authByPhoneNumber(phoneNumber: String)
     suspend fun authByCode(code: String)
     suspend fun authByPassword(password: String)
+
+    suspend fun loadParams()
+    suspend fun loadEncryptedKey()
 }

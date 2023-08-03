@@ -5,27 +5,39 @@ import androidx.lifecycle.viewModelScope
 import dev.dizyaa.dizgram.core.uihelpers.StateViewModel
 import dev.dizyaa.dizgram.feature.auth.data.AuthRepository
 import dev.dizyaa.dizgram.feature.auth.domain.AuthStatus
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.stateIn
 
 class AuthViewModel(
     private val repository: AuthRepository,
 ): StateViewModel<AuthContract.State, AuthContract.Event, AuthContract.Effect>() {
 
-    init {
-        viewModelScope.launch {
-            repository.authStatus.collect {
-                setState { copy(authStatus = it) }
+    private val authStatus = repository.authStatus
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = AuthStatus.WaitParams,
+        )
 
-                if (it == AuthStatus.Ready) {
-                    setEffect { AuthContract.Effect.Navigation.ChatList }
+    init {
+        subscribeAuthStatusForUiState()
+
+        makeRequest {
+            authStatus
+                .collect {
+                    when (it) {
+                        AuthStatus.WaitEncryptedKey -> repository.loadEncryptedKey()
+                        AuthStatus.WaitParams -> repository.loadParams()
+                        else -> Unit
+                    }
                 }
-            }
         }
     }
 
     override fun setInitialState() = AuthContract.State(
         isLoading = false,
-        authStatus = AuthStatus.WaitPhoneNumber,
+        authStatus = AuthStatus.WaitParams,
     )
 
     override fun handleEvents(event: AuthContract.Event) {
@@ -46,9 +58,7 @@ class AuthViewModel(
 
     private fun enterByPhoneNumber(phoneNumber: String) {
         if (phoneNumber.isNotBlank() && phoneNumber.isDigitsOnly()) {
-            makeRequest {
-                repository.authByPhoneNumber(phoneNumber)
-            }
+            subscribeAuthStatusForProcess(phoneNumber)
         }
     }
 
@@ -65,6 +75,44 @@ class AuthViewModel(
             makeRequest {
                 repository.authByPassword(password.trim())
             }
+        }
+    }
+
+    private fun subscribeAuthStatusForUiState() {
+        makeRequest {
+            authStatus
+                .filter {
+                    when (it) {
+                        AuthStatus.Ready,
+                        AuthStatus.WaitPhoneNumber,
+                        AuthStatus.WaitCode,
+                        AuthStatus.WaitOtherDeviceConfirmation,
+                        AuthStatus.WaitRegistration,
+                        AuthStatus.WaitPassword -> true
+                        else -> false
+                    }
+                }
+                .collect {
+                    setState { copy(authStatus = it) }
+
+                    if (it == AuthStatus.Ready) {
+                        setEffect { AuthContract.Effect.Navigation.ChatList }
+                    }
+                }
+        }
+    }
+
+    private fun subscribeAuthStatusForProcess(
+        phoneNumber: String
+    ) {
+        makeRequest {
+            authStatus
+                .collect {
+                    when (it) {
+                        AuthStatus.WaitPhoneNumber -> repository.authByPhoneNumber(phoneNumber)
+                        else -> Unit
+                    }
+                }
         }
     }
 }
