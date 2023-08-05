@@ -9,12 +9,16 @@ import dev.dizyaa.dizgram.feature.chatlist.domain.ChatId
 import dev.dizyaa.dizgram.feature.chatlist.domain.ChatUpdate
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import timber.log.Timber
 
 class ChatListViewModel(
     private val chatRepository: ChatRepository,
 ) : StateViewModel<ChatListContract.State, ChatListContract.Event, ChatListContract.Effect>() {
 
     private val bufferOfUpdates: MutableMap<ChatId, ChatUpdate> = mutableMapOf()
+    private val bufferMutex = Mutex()
 
     init {
         loadChats(ChatFilter.Main)
@@ -34,8 +38,10 @@ class ChatListViewModel(
                 .onEach { chat ->
                     setState { copy(chatList = chatList + chat) }
 
-                    bufferOfUpdates.remove(chat.id)?.let {
-                        updateChat(it)
+                    bufferMutex.withLock {
+                        bufferOfUpdates.remove(chat.id)?.let {
+                            updateChat(it)
+                        }
                     }
                 }
                 .launchIn(viewModelScope)
@@ -78,12 +84,16 @@ class ChatListViewModel(
         }
     }
 
-    private fun updateChat(update: ChatUpdate) {
+    private suspend fun updateChat(update: ChatUpdate) {
         val chatList = state.value.chatList.toMutableList()
         val index = chatList.indexOfFirst { update.chatId == it.id }
 
+        Timber.d("$index -> $update")
+
         if (index == -1) {
-            bufferOfUpdates.put(update.chatId, update)
+            bufferMutex.withLock {
+                bufferOfUpdates[update.chatId] = update
+            }
             return
         }
 

@@ -27,7 +27,7 @@ data class Chat(
     }
 }
 
-class ChatId(val value: Long)
+data class ChatId(val value: Long)
 
 enum class ChatType {
     Direct, Group, Channel, Bot

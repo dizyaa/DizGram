@@ -10,4 +10,4 @@ data class Message(
 )
 
 @Stable
-class MessageId(val value: Long)
+data class MessageId(val value: Long)

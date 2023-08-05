@@ -161,15 +161,16 @@ fun ChatListItem(
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.body1,
                 )
-
-                chat.lastMessage?.content?.let {
-                    Text(
-                        text = it,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.caption1,
-                    )
-                }
+            }
+        },
+        secondaryLabel = {
+            chat.lastMessage?.content?.let {
+                Text(
+                    text = it,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.body2,
+                )
             }
         },
         onClick = onClick,
