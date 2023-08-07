@@ -4,8 +4,8 @@ import androidx.compose.runtime.Stable
 import dev.dizyaa.dizgram.core.uihelpers.UiEffect
 import dev.dizyaa.dizgram.core.uihelpers.UiEvent
 import dev.dizyaa.dizgram.core.uihelpers.UiState
-import dev.dizyaa.dizgram.feature.chatlist.domain.Chat
 import dev.dizyaa.dizgram.feature.chatlist.domain.ChatFilter
+import dev.dizyaa.dizgram.feature.chatlist.ui.model.ChatCard
 
 class ChatListContract {
     sealed class Effect: UiEffect {
@@ -17,14 +17,14 @@ class ChatListContract {
     }
 
     sealed class Event: UiEvent {
-        data class SelectChat(val chat: Chat) : Event()
-        data class LoadChatImage(val chat: Chat) : Event()
+        data class SelectChat(val chat: ChatCard) : Event()
+        data class LoadChatImage(val chat: ChatCard) : Event()
     }
 
     @Stable
     data class State(
         override val isLoading: Boolean,
-        val chatList: List<Chat>,
+        val chatList: List<ChatCard>,
         val chatFilterList: List<ChatFilter>,
     ): UiState {
         companion object {

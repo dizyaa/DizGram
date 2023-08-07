@@ -1,4 +1,4 @@
-package dev.dizyaa.dizgram.feature.chatlist.domain
+package dev.dizyaa.dizgram.feature.chat.domain
 
 import androidx.compose.runtime.Stable
 

@@ -1,8 +1,7 @@
-package dev.dizyaa.dizgram.feature.chatlist.domain
+package dev.dizyaa.dizgram.feature.chat.domain
 
-import androidx.compose.runtime.Stable
+import dev.dizyaa.dizgram.feature.user.domain.UserId
 
-@Stable
 data class Chat(
     val id: ChatId,
     val lastMessage: Message?,
@@ -15,7 +14,8 @@ data class Chat(
             lastMessage = Message(
                 id = MessageId(id),
                 chatId = ChatId(id),
-                content = "Foxi 🦊"
+                content = "Foxi 🦊",
+                sender = MessageSender(UserId(id))
             ),
             name = "Chat #$id",
             chatPhoto = ChatPhoto(
@@ -27,7 +27,7 @@ data class Chat(
     }
 }
 
-data class ChatId(val value: Long)
+data class ChatId(val value: Long): SenderId
 
 enum class ChatType {
     Direct, Group, Channel, Bot

@@ -1,13 +1,17 @@
 package dev.dizyaa.dizgram.feature.chatlist.data.mappers
 
-import dev.dizyaa.dizgram.feature.chatlist.domain.Chat
-import dev.dizyaa.dizgram.feature.chatlist.domain.ChatId
-import dev.dizyaa.dizgram.feature.chatlist.domain.ChatPhoto
-import dev.dizyaa.dizgram.feature.chatlist.domain.FileId
-import dev.dizyaa.dizgram.feature.chatlist.domain.Message
-import dev.dizyaa.dizgram.feature.chatlist.domain.MessageId
-import dev.dizyaa.dizgram.feature.chatlist.domain.Photo
+import dev.dizyaa.dizgram.feature.chat.domain.Chat
+import dev.dizyaa.dizgram.feature.chat.domain.ChatId
+import dev.dizyaa.dizgram.feature.chat.domain.ChatPhoto
+import dev.dizyaa.dizgram.feature.chat.domain.FileId
+import dev.dizyaa.dizgram.feature.chat.domain.Message
+import dev.dizyaa.dizgram.feature.chat.domain.MessageId
+import dev.dizyaa.dizgram.feature.chat.domain.MessageSender
+import dev.dizyaa.dizgram.feature.chat.domain.Photo
+import dev.dizyaa.dizgram.feature.user.domain.UserId
 import org.drinkless.td.libcore.telegram.TdApi
+import org.drinkless.td.libcore.telegram.TdApi.MessageSenderChat
+import org.drinkless.td.libcore.telegram.TdApi.MessageSenderUser
 import org.drinkless.td.libcore.telegram.TdApi.MessageText
 
 fun TdApi.Chat.toDomain(): Chat {
@@ -51,8 +55,25 @@ fun TdApi.Message.toDomain(): Message? {
             id = MessageId(this.id),
             chatId = ChatId(this.chatId),
             content = it.text.text,
+            sender = this.senderId.toDomain()
         )
     }
+}
+
+fun TdApi.MessageSender.toDomain(): MessageSender{
+    val id = when (this) {
+        is MessageSenderChat -> {
+            ChatId(this.chatId)
+        }
+        is MessageSenderUser -> {
+            UserId(this.userId)
+        }
+        else -> throw RuntimeException("MessageSender is unknown!")
+    }
+
+    return MessageSender(
+        senderId = id,
+    )
 }
 
 fun TdApi.LocalFile.needToDownload() =

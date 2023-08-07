@@ -6,6 +6,7 @@ import dev.dizyaa.dizgram.feature.auth.authModule
 import dev.dizyaa.dizgram.feature.chatlist.chatListModule
 import dev.dizyaa.dizgram.feature.configuration.configurationModule
 import dev.dizyaa.dizgram.feature.datagates.dataGatesModule
+import dev.dizyaa.dizgram.feature.user.userModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -30,4 +31,5 @@ val modules = listOf(
     configurationModule,
     dataGatesModule,
     coreModule,
+    userModule,
 )

@@ -2,13 +2,13 @@ package dev.dizyaa.dizgram.feature.chatlist.data
 
 import dev.dizyaa.dizgram.core.telegram.TdContext
 import dev.dizyaa.dizgram.core.telegram.TdRepository
+import dev.dizyaa.dizgram.feature.chat.domain.Chat
+import dev.dizyaa.dizgram.feature.chat.domain.ChatId
+import dev.dizyaa.dizgram.feature.chat.domain.FileId
 import dev.dizyaa.dizgram.feature.chatlist.data.mappers.toDomain
 import dev.dizyaa.dizgram.feature.chatlist.data.mappers.toDomainPhoto
-import dev.dizyaa.dizgram.feature.chatlist.domain.Chat
 import dev.dizyaa.dizgram.feature.chatlist.domain.ChatFilter
-import dev.dizyaa.dizgram.feature.chatlist.domain.ChatId
 import dev.dizyaa.dizgram.feature.chatlist.domain.ChatUpdate
-import dev.dizyaa.dizgram.feature.chatlist.domain.FileId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter

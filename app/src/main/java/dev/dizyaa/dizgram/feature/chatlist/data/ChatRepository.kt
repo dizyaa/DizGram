@@ -1,10 +1,10 @@
 package dev.dizyaa.dizgram.feature.chatlist.data
 
-import dev.dizyaa.dizgram.feature.chatlist.domain.Chat
+import dev.dizyaa.dizgram.feature.chat.domain.Chat
+import dev.dizyaa.dizgram.feature.chat.domain.ChatId
+import dev.dizyaa.dizgram.feature.chat.domain.FileId
 import dev.dizyaa.dizgram.feature.chatlist.domain.ChatFilter
-import dev.dizyaa.dizgram.feature.chatlist.domain.ChatId
 import dev.dizyaa.dizgram.feature.chatlist.domain.ChatUpdate
-import dev.dizyaa.dizgram.feature.chatlist.domain.FileId
 import kotlinx.coroutines.flow.Flow
 
 interface ChatRepository {

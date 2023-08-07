@@ -22,7 +22,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -40,7 +42,7 @@ import androidx.wear.compose.material.rememberScalingLazyListState
 import coil.compose.rememberAsyncImagePainter
 import dev.dizyaa.dizgram.core.uihelpers.SIDE_EFFECTS_KEY
 import dev.dizyaa.dizgram.core.uihelpers.toImageRequestData
-import dev.dizyaa.dizgram.feature.chatlist.domain.Chat
+import dev.dizyaa.dizgram.feature.chatlist.ui.model.ChatCard
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -108,9 +110,9 @@ fun ChatListUi(
 
 @Composable
 fun ChatList(
-    list: List<Chat>,
-    onChatClick: (Chat) -> Unit,
-    onChatNeedDownloadImage: (Chat) -> Unit,
+    list: List<ChatCard>,
+    onChatClick: (ChatCard) -> Unit,
+    onChatNeedDownloadImage: (ChatCard) -> Unit,
     state: ScalingLazyListState,
     modifier: Modifier = Modifier,
 ) {
@@ -147,7 +149,7 @@ fun ChatList(
 
 @Composable
 fun ChatListItem(
-    chat: Chat,
+    chat: ChatCard,
     onClick: () -> Unit,
     onNeedDownloadImage: () -> Unit,
     modifier: Modifier = Modifier
@@ -166,7 +168,18 @@ fun ChatListItem(
         secondaryLabel = {
             chat.lastMessage?.content?.let {
                 Text(
-                    text = it,
+                    text = buildAnnotatedString {
+                        if (chat.lastMessageFromMyself) {
+                            withStyle(
+                                MaterialTheme.typography.caption2.copy(
+                                    color = MaterialTheme.colors.onPrimary.copy(red = 1f)
+                                ).toSpanStyle()
+                            ) {
+                                append("Me: ")
+                            }
+                        }
+                        append(it)
+                    },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.body2,
@@ -201,7 +214,7 @@ fun ChatListItem(
 private fun ChatListPreview() {
     ChatList(
         list = (0..10).map {
-            Chat.fake(it.toLong())
+            ChatCard.fake(it.toLong())
         },
         onChatClick = { },
         onChatNeedDownloadImage = { },

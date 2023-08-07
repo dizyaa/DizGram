@@ -1,7 +1,7 @@
 package dev.dizyaa.dizgram.core.uihelpers
 
-import dev.dizyaa.dizgram.feature.chatlist.domain.ChatPhoto
-import dev.dizyaa.dizgram.feature.chatlist.domain.Photo
+import dev.dizyaa.dizgram.feature.chat.domain.ChatPhoto
+import dev.dizyaa.dizgram.feature.chat.domain.Photo
 import java.io.File
 
 fun ChatPhoto.toImageRequestData(allowBigPhoto: Boolean = false): Any? {
