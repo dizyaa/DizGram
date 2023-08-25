@@ -8,10 +8,13 @@ import dev.dizyaa.dizgram.feature.chat.domain.Message
 import dev.dizyaa.dizgram.feature.chat.domain.MessageId
 import dev.dizyaa.dizgram.feature.chat.domain.MessageSender
 import dev.dizyaa.dizgram.feature.chat.domain.Photo
+import dev.dizyaa.dizgram.feature.chat.domain.SendingStatus
 import dev.dizyaa.dizgram.feature.user.domain.UserId
 import org.drinkless.td.libcore.telegram.TdApi
 import org.drinkless.td.libcore.telegram.TdApi.MessageSenderChat
 import org.drinkless.td.libcore.telegram.TdApi.MessageSenderUser
+import org.drinkless.td.libcore.telegram.TdApi.MessageSendingStateFailed
+import org.drinkless.td.libcore.telegram.TdApi.MessageSendingStatePending
 import org.drinkless.td.libcore.telegram.TdApi.MessageText
 
 fun TdApi.Chat.toDomain(): Chat {
@@ -49,15 +52,16 @@ fun TdApi.File.toDomainPhoto(): Photo {
     )
 }
 
-fun TdApi.Message.toDomain(): Message? {
-    return (this.content as? MessageText)?.let {
-        Message(
-            id = MessageId(this.id),
-            chatId = ChatId(this.chatId),
-            content = it.text.text,
-            sender = this.senderId.toDomain()
-        )
-    }
+fun TdApi.Message.toDomain(): Message {
+    return Message(
+        id = MessageId(this.id),
+        chatId = ChatId(this.chatId),
+        content = (this.content as? MessageText)?.text?.text.orEmpty(),
+        sender = this.senderId.toDomain(),
+        isEdited = this.editDate >= this.date,
+        isPinned = this.isPinned,
+        status = this.sendingState.toDomain(),
+    )
 }
 
 fun TdApi.MessageSender.toDomain(): MessageSender{
@@ -74,6 +78,14 @@ fun TdApi.MessageSender.toDomain(): MessageSender{
     return MessageSender(
         senderId = id,
     )
+}
+
+fun TdApi.MessageSendingState?.toDomain(): SendingStatus {
+    return when (this) {
+        is MessageSendingStatePending -> SendingStatus.InProgress
+        is MessageSendingStateFailed -> SendingStatus.Error
+        else -> SendingStatus.Read
+    }
 }
 
 fun TdApi.LocalFile.needToDownload() =

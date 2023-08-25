@@ -7,12 +7,12 @@ import dev.dizyaa.dizgram.feature.chatlist.domain.ChatFilter
 import dev.dizyaa.dizgram.feature.chatlist.domain.ChatUpdate
 import kotlinx.coroutines.flow.Flow
 
-interface ChatRepository {
+interface ChatListRepository {
     val chatFilterFlow: Flow<List<ChatFilter>>
     val chatsFlow: Flow<Chat>
     val chatUpdatesFlow: Flow<ChatUpdate>
-
-    suspend fun loadPhotoByFileId(chatId: ChatId, fileId: FileId)
     suspend fun loadChatsByFilter(filter: ChatFilter)
-    suspend fun getChatById(id: ChatId): Chat
+
+    // TODO: move to file storage
+    suspend fun loadPhotoByFileId(chatId: ChatId, fileId: FileId)
 }

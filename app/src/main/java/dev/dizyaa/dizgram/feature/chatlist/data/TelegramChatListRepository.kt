@@ -20,9 +20,9 @@ import kotlinx.coroutines.flow.map
 import org.drinkless.td.libcore.telegram.TdApi
 import org.drinkless.td.libcore.telegram.TdApi.ChatListFilter
 
-class TelegramChatRepository(
+class TelegramChatListRepository(
     context: TdContext,
-): TdRepository(context), ChatRepository {
+): TdRepository(context), ChatListRepository {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val chatFilterFlow: Flow<List<ChatFilter>> =
@@ -53,7 +53,7 @@ class TelegramChatRepository(
             )
         }
 
-    private val updatesLastMessage: Flow<ChatUpdate> = getUpdatesFlow<TdApi.UpdateChatLastMessage>(TdApi.UpdateChatLastMessage.CONSTRUCTOR)
+    private val updatesLastMessage: Flow<ChatUpdate> = getUpdatesFlow<TdApi.UpdateChatLastMessage>()
         .map {
             ChatUpdate.LastMessage(
                 chatId = ChatId(it.chatId),
@@ -61,7 +61,7 @@ class TelegramChatRepository(
             )
         }
 
-    private val updatePhotoDownload: Flow<ChatUpdate> = getUpdatesFlow<TdApi.UpdateFile>(TdApi.UpdateFile.CONSTRUCTOR)
+    private val updatePhotoDownload: Flow<ChatUpdate> = getUpdatesFlow<TdApi.UpdateFile>()
         .filter { !it.file.toDomainPhoto().needToDownload }
         .map { update ->
             val photo = update.file.toDomainPhoto()
@@ -108,10 +108,6 @@ class TelegramChatRepository(
                 false,
             )
         )
-    }
-
-    override suspend fun getChatById(id: ChatId): Chat {
-        TODO("Not yet implemented")
     }
 
     companion object {

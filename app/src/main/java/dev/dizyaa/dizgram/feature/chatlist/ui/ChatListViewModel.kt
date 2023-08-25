@@ -5,7 +5,7 @@ import dev.dizyaa.dizgram.core.uihelpers.StateViewModel
 import dev.dizyaa.dizgram.feature.chat.domain.Chat
 import dev.dizyaa.dizgram.feature.chat.domain.ChatId
 import dev.dizyaa.dizgram.feature.chat.domain.isUser
-import dev.dizyaa.dizgram.feature.chatlist.data.ChatRepository
+import dev.dizyaa.dizgram.feature.chatlist.data.ChatListRepository
 import dev.dizyaa.dizgram.feature.chatlist.domain.ChatFilter
 import dev.dizyaa.dizgram.feature.chatlist.domain.ChatUpdate
 import dev.dizyaa.dizgram.feature.chatlist.ui.model.ChatCard
@@ -19,7 +19,7 @@ import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 
 class ChatListViewModel(
-    private val chatRepository: ChatRepository,
+    private val chatListRepository: ChatListRepository,
     private val userRepository: UserRepository,
 ) : StateViewModel<ChatListContract.State, ChatListContract.Event, ChatListContract.Effect>() {
 
@@ -36,7 +36,7 @@ class ChatListViewModel(
         }
 
         makeRequest {
-            chatRepository
+            chatListRepository
                 .chatFilterFlow
                 .onEach { list ->
                     setState { copy(chatFilterList = list) }
@@ -45,7 +45,7 @@ class ChatListViewModel(
         }
 
         makeRequest {
-            chatRepository
+            chatListRepository
                 .chatsFlow
                 .onEach { chat ->
                     val user = currentUser.await()
@@ -61,7 +61,7 @@ class ChatListViewModel(
         }
 
         makeRequest {
-            chatRepository
+            chatListRepository
                 .chatUpdatesFlow
                 .onEach { update ->
                     updateChat(update)
@@ -91,7 +91,7 @@ class ChatListViewModel(
         makeRequest {
             chat.chatPhoto?.small?.let {
                 if (it.needToDownload) {
-                    chatRepository.loadPhotoByFileId(chat.id, it.id)
+                    chatListRepository.loadPhotoByFileId(chat.id, it.id)
                 }
             }
         }
@@ -143,12 +143,12 @@ class ChatListViewModel(
 
     private fun loadChats(filter: ChatFilter) {
         makeRequest {
-            chatRepository.loadChatsByFilter(filter)
+            chatListRepository.loadChatsByFilter(filter)
         }
     }
 
     private fun selectChat(chat: ChatCard) {
-
+        setEffect { ChatListContract.Effect.Navigation.ChatRequired(chatId = chat.id) }
     }
 
     private fun Chat.toCardUi(user: User): ChatCard {

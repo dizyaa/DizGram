@@ -3,6 +3,7 @@ package dev.dizyaa.dizgram
 import android.app.Application
 import dev.dizyaa.dizgram.core.coreModule
 import dev.dizyaa.dizgram.feature.auth.authModule
+import dev.dizyaa.dizgram.feature.chat.chatModule
 import dev.dizyaa.dizgram.feature.chatlist.chatListModule
 import dev.dizyaa.dizgram.feature.configuration.configurationModule
 import dev.dizyaa.dizgram.feature.datagates.dataGatesModule
@@ -32,4 +33,5 @@ val modules = listOf(
     dataGatesModule,
     coreModule,
     userModule,
+    chatModule,
 )

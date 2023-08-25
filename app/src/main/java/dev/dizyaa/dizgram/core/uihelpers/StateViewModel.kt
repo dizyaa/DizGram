@@ -46,16 +46,13 @@ abstract class StateViewModel<
     val effect: Flow<Effect> = _effect.receiveAsFlow()
     private val loadingFlags: MutableSet<Int> = mutableSetOf()
 
-
     private val _event: MutableSharedFlow<Event> = MutableSharedFlow()
 
     protected abstract fun handleEvents(event: Event)
 
-
     init {
         subscribeToEvents()
     }
-
 
     fun setEvent(event: Event) {
         viewModelScope.launch { _event.emit(event) }

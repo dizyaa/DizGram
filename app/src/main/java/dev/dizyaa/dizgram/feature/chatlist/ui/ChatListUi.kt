@@ -56,7 +56,11 @@ fun ChatListDestination(
 
     ChatListUi(
         onNavigation = {
-
+            when (it) {
+                is ChatListContract.Effect.Navigation.ChatRequired -> {
+                    navController.navigate("chat/${it.chatId.value}")
+                }
+            }
         },
         onEvent = { viewModel.setEvent(it) },
         stateFlow = viewModel.state,

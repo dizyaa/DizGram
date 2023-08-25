@@ -47,7 +47,9 @@ fun AuthDestination(
         onNavigation = {
             when (it) {
                 is AuthContract.Effect.Navigation.ChatList -> {
-                    navController.navigate("chatList")
+                    navController.navigate("chatList") {
+                        popUpTo(0)
+                    }
                 }
             }
         },

@@ -1,7 +1,6 @@
 package dev.dizyaa.dizgram.core.telegram
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import org.drinkless.td.libcore.telegram.TdApi
 import kotlin.coroutines.resume
@@ -39,9 +38,4 @@ abstract class TdRepository(
 
     internal inline fun <reified T> getUpdatesFlow(): Flow<T> =
         context.updates.filterIsInstance()
-
-    @Suppress("UNCHECKED_CAST")
-    internal inline fun <reified T> getUpdatesFlow(vararg constructors: Int): Flow<T> =
-        context.updates
-            .filter { it.constructor in constructors } as Flow<T>
 }

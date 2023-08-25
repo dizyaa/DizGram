@@ -1,7 +1,5 @@
 package dev.dizyaa.dizgram.feature.chat.domain
 
-import dev.dizyaa.dizgram.feature.user.domain.UserId
-
 data class Chat(
     val id: ChatId,
     val lastMessage: Message?,
@@ -11,12 +9,7 @@ data class Chat(
     companion object {
         fun fake(id: Long) = Chat(
             id = ChatId(id),
-            lastMessage = Message(
-                id = MessageId(id),
-                chatId = ChatId(id),
-                content = "Foxi 🦊",
-                sender = MessageSender(UserId(id))
-            ),
+            lastMessage = Message.mock(id),
             name = "Chat #$id",
             chatPhoto = ChatPhoto(
                 Photo.fake(),
@@ -28,7 +21,3 @@ data class Chat(
 }
 
 data class ChatId(val value: Long): SenderId
-
-enum class ChatType {
-    Direct, Group, Channel, Bot
-}

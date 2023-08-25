@@ -6,6 +6,8 @@ import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import dev.dizyaa.dizgram.feature.auth.ui.AuthDestination
+import dev.dizyaa.dizgram.feature.chat.domain.ChatId
+import dev.dizyaa.dizgram.feature.chat.ui.ChatDestination
 import dev.dizyaa.dizgram.feature.chatlist.ui.ChatListDestination
 
 @Composable
@@ -26,5 +28,14 @@ fun AppUi(
         composable("chatList") {
             ChatListDestination(navController = navController)
         }
+
+        composable(Router.Chat.route) {
+            ChatDestination(
+                navController = navController,
+                chatId = it.arguments?.getString("chatId")?.toLongOrNull()?.let { ChatId(it) }
+                    ?: throw RuntimeException("Chat Id is not pass for chat/{chatId}!")
+            )
+        }
     }
 }
+
