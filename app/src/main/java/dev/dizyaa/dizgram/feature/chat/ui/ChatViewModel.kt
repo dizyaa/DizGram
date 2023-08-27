@@ -28,7 +28,6 @@ class ChatViewModel(
     override fun handleEvents(event: ChatContract.Event) {
         when (event) {
             is ChatContract.Event.NextPageRequired -> loadMoreMessagesRequired()
-            else -> Unit
         }
     }
 
@@ -41,7 +40,7 @@ class ChatViewModel(
     override fun setInitialState() = ChatContract.State(
         isLoading = false,
         chatImage = null,
-        chatTitle = "Loading...",
+        chatTitle = "",
         messages = emptyList(),
     )
 
@@ -87,13 +86,24 @@ class ChatViewModel(
 
     private fun initChat() {
         loadMessages(MessageId(0L))
+
+        makeRequest {
+            chatRepository.getChat().let { chat ->
+                setState {
+                    copy(
+                        chatTitle = chat.name,
+                        chatImage = chat.chatPhoto
+                    )
+                }
+            }
+        }
     }
 
     private fun loadMessages(from: MessageId) {
         makeRequest {
             chatRepository.getChatMessages(
                 fromMessage = from,
-                limit = 30,
+                limit = CHAT_HISTORY_LIMIT,
                 offset = 0,
             ).let {
                 addToEndOfListMessages(it)
@@ -110,5 +120,9 @@ class ChatViewModel(
         makeRequest {
             currentUser.complete(userRepository.getCurrentUser())
         }
+    }
+
+    companion object {
+        private const val CHAT_HISTORY_LIMIT = 30
     }
 }

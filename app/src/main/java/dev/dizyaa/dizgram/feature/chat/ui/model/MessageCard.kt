@@ -21,7 +21,7 @@ data class MessageCard(
         fun mock(id: Long = -1L, fromMe: Boolean = true) = MessageCard(
             id = MessageId(id),
             senderId = UserId(id),
-            contentText = "Text Text",
+            contentText = "Neque porro quisquam est qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit...",
             contentLink = "https://google.com/",
             contentImages = emptyList(),
             sendingStatus = SendingStatus.InProgress,
