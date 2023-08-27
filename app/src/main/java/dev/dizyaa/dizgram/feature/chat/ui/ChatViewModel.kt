@@ -48,9 +48,7 @@ class ChatViewModel(
         return MessageCard(
             id = this.id,
             senderId = this.sender.senderId,
-            contentText = this.content,
-            contentLink = null,
-            contentImages = emptyList(),
+            content = this.content,
             sendingStatus = this.status,
             authorName = null,
             fromMe = user.userId == this.sender.senderId,

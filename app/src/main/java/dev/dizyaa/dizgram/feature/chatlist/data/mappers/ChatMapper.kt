@@ -9,13 +9,13 @@ import dev.dizyaa.dizgram.feature.chat.domain.MessageId
 import dev.dizyaa.dizgram.feature.chat.domain.MessageSender
 import dev.dizyaa.dizgram.feature.chat.domain.Photo
 import dev.dizyaa.dizgram.feature.chat.domain.SendingStatus
+import dev.dizyaa.dizgram.feature.chat.domain.toDomain
 import dev.dizyaa.dizgram.feature.user.domain.UserId
 import org.drinkless.td.libcore.telegram.TdApi
 import org.drinkless.td.libcore.telegram.TdApi.MessageSenderChat
 import org.drinkless.td.libcore.telegram.TdApi.MessageSenderUser
 import org.drinkless.td.libcore.telegram.TdApi.MessageSendingStateFailed
 import org.drinkless.td.libcore.telegram.TdApi.MessageSendingStatePending
-import org.drinkless.td.libcore.telegram.TdApi.MessageText
 
 fun TdApi.Chat.toDomain(): Chat {
     return Chat(
@@ -56,7 +56,7 @@ fun TdApi.Message.toDomain(): Message {
     return Message(
         id = MessageId(this.id),
         chatId = ChatId(this.chatId),
-        content = (this.content as? MessageText)?.text?.text.orEmpty(),
+        content = this.content.toDomain(),
         sender = this.senderId.toDomain(),
         isEdited = this.editDate >= this.date,
         isPinned = this.isPinned,

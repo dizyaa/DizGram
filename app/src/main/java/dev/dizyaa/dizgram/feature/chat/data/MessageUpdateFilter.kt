@@ -5,11 +5,11 @@ import dev.dizyaa.dizgram.feature.chat.domain.ChatId
 import dev.dizyaa.dizgram.feature.chat.domain.MessageId
 import dev.dizyaa.dizgram.feature.chat.domain.MessageUpdateType
 import dev.dizyaa.dizgram.feature.chat.domain.SendingStatus
+import dev.dizyaa.dizgram.feature.chat.domain.toDomain
 import dev.dizyaa.dizgram.feature.chatlist.data.mappers.toDomain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
 import org.drinkless.td.libcore.telegram.TdApi
-import org.drinkless.td.libcore.telegram.TdApi.MessageText
 
 fun Flow<TdApi.Update>.mapMessageUpdateToDomain(): Flow<MessageUpdate> {
     return this
@@ -28,7 +28,7 @@ fun Flow<TdApi.Update>.mapMessageUpdateToDomain(): Flow<MessageUpdate> {
         }
         .filteredMap<TdApi.UpdateMessageContent> {
             ChatId(it.messageId) to MessageUpdateType.Content(
-                content = (it.newContent as? MessageText)?.text?.text.orEmpty()
+                content = it.newContent.toDomain()
             )
 
         }

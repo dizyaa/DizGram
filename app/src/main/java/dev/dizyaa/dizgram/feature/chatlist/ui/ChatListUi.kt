@@ -42,6 +42,7 @@ import androidx.wear.compose.material.rememberScalingLazyListState
 import coil.compose.rememberAsyncImagePainter
 import dev.dizyaa.dizgram.core.uihelpers.SIDE_EFFECTS_KEY
 import dev.dizyaa.dizgram.core.uihelpers.toImageRequestData
+import dev.dizyaa.dizgram.feature.chat.domain.MessageContent
 import dev.dizyaa.dizgram.feature.chatlist.ui.model.ChatCard
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -182,7 +183,11 @@ fun ChatListItem(
                                 append("Me: ")
                             }
                         }
-                        append(it)
+
+                        when (val content = it) {
+                            is MessageContent.Text -> append(content.text)
+                            is MessageContent.Unsupported -> Unit
+                        }
                     },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

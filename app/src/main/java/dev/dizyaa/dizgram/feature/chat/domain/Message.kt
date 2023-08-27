@@ -19,7 +19,10 @@ data class Message(
             id = MessageId(id),
             chatId = ChatId(id),
             sender = MessageSender(UserId(id)),
-            content = "Text Text",
+            content = MessageContent.Text(
+                "Is this a message? No, this is Patrick",
+                "https://www.youtube.com/watch?v=PZWh4Kji7uA"
+            ),
             isPinned = false,
             isEdited = false,
             status = SendingStatus.InProgress,
@@ -27,8 +30,6 @@ data class Message(
         )
     }
 }
-
-typealias MessageContent = String
 
 @Stable
 data class MessageId(val value: Long)
