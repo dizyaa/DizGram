@@ -15,6 +15,7 @@ data class MessageCard(
     val sendingStatus: SendingStatus,
     val authorName: String?,
     val fromMe: Boolean,
+    val date: Int,
 ) {
     companion object {
         fun mock(id: Long = -1L, fromMe: Boolean = true) = MessageCard(
@@ -25,7 +26,8 @@ data class MessageCard(
             contentImages = emptyList(),
             sendingStatus = SendingStatus.InProgress,
             authorName = null,
-            fromMe = fromMe
+            fromMe = fromMe,
+            date = 0,
         )
     }
 }

@@ -8,6 +8,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -19,16 +21,16 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.ScalingLazyListAnchorType
+import androidx.wear.compose.foundation.lazy.ScalingLazyListState
+import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Scaffold
-import androidx.wear.compose.material.ScalingLazyColumn
-import androidx.wear.compose.material.ScalingLazyListAnchorType
-import androidx.wear.compose.material.ScalingLazyListState
 import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.items
-import androidx.wear.compose.material.rememberScalingLazyListState
 import dev.dizyaa.dizgram.AppTheme
 import dev.dizyaa.dizgram.feature.chat.domain.ChatId
 import dev.dizyaa.dizgram.feature.chat.ui.model.MessageCard
@@ -80,7 +82,10 @@ fun ChatUi(
         MessageList(
             list = state.messages,
             onMessageClick = { },
-            state = scalingLazyListState
+            state = scalingLazyListState,
+            onNextPageRequire = {
+                onEvent(ChatContract.Event.NextPageRequired)
+            }
         )
     }
 }
@@ -89,6 +94,7 @@ fun ChatUi(
 private fun MessageList(
     list: List<MessageCard>,
     onMessageClick: (MessageCard) -> Unit,
+    onNextPageRequire: () -> Unit,
     state: ScalingLazyListState,
     modifier: Modifier = Modifier
 ) {
@@ -110,9 +116,6 @@ private fun MessageList(
     ) {
         items(
             list,
-            key = {
-                it.id.value
-            }
         ) {
             MessageListItem(
                 messageCard = it,
@@ -120,7 +123,34 @@ private fun MessageList(
             )
         }
     }
+
+    state.OnBottomReached(
+        callback = {
+            onNextPageRequire()
+        },
+        itemCountGap = 5
+    )
+
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
+}
+
+@Composable
+private fun ScalingLazyListState.OnBottomReached(
+    callback: () -> Unit,
+    itemCountGap: Int,
+) {
+    val bottomReached by remember(this) {
+        derivedStateOf {
+            val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()
+            lastVisibleItem != null && lastVisibleItem.index >= layoutInfo.totalItemsCount - 1 - itemCountGap
+        }
+    }
+
+    if (bottomReached) {
+        LaunchedEffect(Unit) {
+            callback()
+        }
+    }
 }
 
 @Composable

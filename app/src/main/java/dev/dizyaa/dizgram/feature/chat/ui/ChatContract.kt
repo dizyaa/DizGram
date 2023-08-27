@@ -27,7 +27,7 @@ class ChatContract {
     }
 
     sealed class Event: UiEvent {
-
+        object NextPageRequired : Event()
     }
 
     sealed class Effect: UiEffect {

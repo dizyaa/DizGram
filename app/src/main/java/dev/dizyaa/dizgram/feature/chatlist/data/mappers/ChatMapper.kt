@@ -61,6 +61,7 @@ fun TdApi.Message.toDomain(): Message {
         isEdited = this.editDate >= this.date,
         isPinned = this.isPinned,
         status = this.sendingState.toDomain(),
+        date = this.date,
     )
 }
 

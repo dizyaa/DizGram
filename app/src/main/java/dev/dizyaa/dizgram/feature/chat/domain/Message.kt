@@ -12,6 +12,7 @@ data class Message(
     val isPinned: Boolean,
     val isEdited: Boolean,
     val status: SendingStatus,
+    val date: Int,
 ) {
     companion object {
         fun mock(id: Long) = Message(
@@ -22,6 +23,7 @@ data class Message(
             isPinned = false,
             isEdited = false,
             status = SendingStatus.InProgress,
+            date = 0,
         )
     }
 }

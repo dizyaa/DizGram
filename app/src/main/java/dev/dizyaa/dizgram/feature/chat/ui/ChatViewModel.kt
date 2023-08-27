@@ -4,13 +4,13 @@ import androidx.lifecycle.viewModelScope
 import dev.dizyaa.dizgram.core.uihelpers.StateViewModel
 import dev.dizyaa.dizgram.feature.chat.data.ChatRepository
 import dev.dizyaa.dizgram.feature.chat.domain.Message
+import dev.dizyaa.dizgram.feature.chat.domain.MessageId
 import dev.dizyaa.dizgram.feature.chat.ui.model.MessageCard
 import dev.dizyaa.dizgram.feature.user.data.UserRepository
 import dev.dizyaa.dizgram.feature.user.domain.User
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import timber.log.Timber
 
 class ChatViewModel(
     private val chatRepository: ChatRepository,
@@ -21,11 +21,13 @@ class ChatViewModel(
 
     init {
         initUser()
+        initChat()
         subscribeMessages()
     }
 
     override fun handleEvents(event: ChatContract.Event) {
         when (event) {
+            is ChatContract.Event.NextPageRequired -> loadMoreMessagesRequired()
             else -> Unit
         }
     }
@@ -52,19 +54,56 @@ class ChatViewModel(
             contentImages = emptyList(),
             sendingStatus = this.status,
             authorName = null,
-            fromMe = user.userId == this.sender.senderId
+            fromMe = user.userId == this.sender.senderId,
+            date = this.date,
         )
     }
 
     private fun subscribeMessages() {
-        chatRepository.messages
+        chatRepository.newMessages
             .onEach {
-                val user = currentUser.await()
-                setState { copy(messages = messages + it.toUi(user)) }
-
-                Timber.d(it.toString())
+                addNewMessage(it)
             }
             .launchIn(viewModelScope)
+    }
+
+    private fun addNewMessage(message: Message) {
+        makeRequest {
+            val user = currentUser.await()
+            val messages = listOf(message.toUi(user)) + state.value.messages
+
+            setState { copy(messages = messages) }
+        }
+    }
+
+    private fun addToEndOfListMessages(messageList: List<Message>) {
+        makeRequest {
+            val user = currentUser.await()
+            val messages = state.value.messages + messageList.map { it.toUi(user) }
+
+            setState { copy(messages = messages) }
+        }
+    }
+
+    private fun initChat() {
+        loadMessages(MessageId(0L))
+    }
+
+    private fun loadMessages(from: MessageId) {
+        makeRequest {
+            chatRepository.getChatMessages(
+                fromMessage = from,
+                limit = 30,
+                offset = 0,
+            ).let {
+                addToEndOfListMessages(it)
+            }
+        }
+    }
+
+    private fun loadMoreMessagesRequired() {
+        val from = state.value.messages.lastOrNull() ?: return
+        loadMessages(from.id)
     }
 
     private fun initUser() {
