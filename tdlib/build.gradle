@@ -8,7 +8,7 @@ apply plugin: 'com.android.library'
 
 android {
     namespace 'org.drinkless.td.libcore'
-    compileSdkVersion 33
+    compileSdkVersion 34
 
     sourceSets.main {
         jniLibs.srcDir 'src/main/libs'
@@ -17,7 +17,7 @@ android {
 
     defaultConfig {
         minSdkVersion 10
-        targetSdkVersion 33
+        targetSdkVersion 34
     }
     buildTypes {
         release {
