@@ -27,7 +27,6 @@ class ChatListContract {
 
     sealed class Event: UiEvent {
         data class SelectChat(val chat: ChatCard) : Event()
-        data class LoadChatImage(val chat: ChatCard) : Event()
     }
 
     sealed class Effect: UiEffect {

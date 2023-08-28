@@ -3,11 +3,11 @@ package dev.dizyaa.dizgram.feature.chatlist.data.mappers
 import dev.dizyaa.dizgram.feature.chat.domain.Chat
 import dev.dizyaa.dizgram.feature.chat.domain.ChatId
 import dev.dizyaa.dizgram.feature.chat.domain.ChatPhoto
+import dev.dizyaa.dizgram.feature.chat.domain.File
 import dev.dizyaa.dizgram.feature.chat.domain.FileId
 import dev.dizyaa.dizgram.feature.chat.domain.Message
 import dev.dizyaa.dizgram.feature.chat.domain.MessageId
 import dev.dizyaa.dizgram.feature.chat.domain.MessageSender
-import dev.dizyaa.dizgram.feature.chat.domain.Photo
 import dev.dizyaa.dizgram.feature.chat.domain.SendingStatus
 import dev.dizyaa.dizgram.feature.chat.domain.toDomain
 import dev.dizyaa.dizgram.feature.user.domain.UserId
@@ -16,6 +16,7 @@ import org.drinkless.td.libcore.telegram.TdApi.MessageSenderChat
 import org.drinkless.td.libcore.telegram.TdApi.MessageSenderUser
 import org.drinkless.td.libcore.telegram.TdApi.MessageSendingStateFailed
 import org.drinkless.td.libcore.telegram.TdApi.MessageSendingStatePending
+import timber.log.Timber
 
 fun TdApi.Chat.toDomain(): Chat {
     return Chat(
@@ -34,8 +35,8 @@ fun TdApi.ChatPhotoInfo.toDomain(): ChatPhoto {
     )
 }
 
-fun TdApi.Minithumbnail.toDomainPhoto(): Photo {
-    return Photo(
+fun TdApi.Minithumbnail.toDomainPhoto(): File {
+    return File(
         id = FileId(-1),
         path = "",
         bytes = this.data,
@@ -43,8 +44,8 @@ fun TdApi.Minithumbnail.toDomainPhoto(): Photo {
     )
 }
 
-fun TdApi.File.toDomainPhoto(): Photo {
-    return Photo(
+fun TdApi.File.toDomainPhoto(): File {
+    return File(
         id = FileId(this.id),
         path = this.local.path,
         bytes = null,
@@ -53,6 +54,7 @@ fun TdApi.File.toDomainPhoto(): Photo {
 }
 
 fun TdApi.Message.toDomain(): Message {
+    Timber.d(this.toString())
     return Message(
         id = MessageId(this.id),
         chatId = ChatId(this.chatId),

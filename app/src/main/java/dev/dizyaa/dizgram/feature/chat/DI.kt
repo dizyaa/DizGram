@@ -8,6 +8,6 @@ import org.koin.dsl.module
 val chatModule = module {
     viewModel { params ->
         val repository = TelegramChatRepository(params.get(), get())
-        ChatViewModel(repository, get())
+        ChatViewModel(repository, get(), get())
     }
 }

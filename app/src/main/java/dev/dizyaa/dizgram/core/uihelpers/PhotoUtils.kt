@@ -1,7 +1,6 @@
 package dev.dizyaa.dizgram.core.uihelpers
 
 import dev.dizyaa.dizgram.feature.chat.domain.ChatPhoto
-import dev.dizyaa.dizgram.feature.chat.domain.Photo
 import java.io.File
 
 fun ChatPhoto.toImageRequestData(allowBigPhoto: Boolean = false): Any? {
@@ -10,7 +9,7 @@ fun ChatPhoto.toImageRequestData(allowBigPhoto: Boolean = false): Any? {
 
 fun ChatPhoto.toPriorityPhoto(
     allowBigPhoto: Boolean,
-): Photo? {
+): dev.dizyaa.dizgram.feature.chat.domain.File? {
     return when {
         allowBigPhoto && this.big != null-> this.big
         (this.small != null) && this.small.path.isNotEmpty() -> this.small
@@ -19,7 +18,7 @@ fun ChatPhoto.toPriorityPhoto(
     }
 }
 
-fun Photo.toImageRequestData(): Any? {
+fun dev.dizyaa.dizgram.feature.chat.domain.File.toImageRequestData(): Any? {
     return when {
         this.path.isNotEmpty() -> File(this.path)
         this.bytes?.isNotEmpty() == true -> this.bytes

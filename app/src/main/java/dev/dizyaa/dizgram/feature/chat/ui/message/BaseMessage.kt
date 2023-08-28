@@ -20,16 +20,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
-import dev.dizyaa.dizgram.feature.chat.domain.MessageContent
-import dev.dizyaa.dizgram.feature.chat.ui.model.MessageCard
 
 @Composable
-fun MessageCardUi(
-    messageCard: MessageCard,
-    onClick: () -> Unit,
+fun BaseMessage(
+    text: String,
+    modifier: Modifier = Modifier,
+    fromUser: Boolean = false,
+    onClick: (() -> Unit)? = null,
+    topContent: (@Composable () -> Unit)? = null,
+    bottomContent: (@Composable () -> Unit)? = null,
 ) {
-    val content = messageCard.content as? MessageContent.Text ?: return
-    val fromUser = messageCard.fromMe
     val backgroundColor = when (fromUser) {
         true -> MaterialTheme.colors.primary
         false -> MaterialTheme.colors.secondary
@@ -46,8 +46,12 @@ fun MessageCardUi(
     val maxLines = 3
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
+            .clickable(
+                enabled = onClick != null,
+                onClick = { onClick?.invoke()}
+            )
     ) {
         Column(
             modifier = Modifier
@@ -65,12 +69,14 @@ fun MessageCardUi(
                 mutableStateOf(false)
             }
 
+            topContent?.invoke()
+
             AnimatedContent(
                 targetState = expanded,
                 label = "expandedText",
             ) { isExpanded ->
                 Text(
-                    text = content.text,
+                    text = text,
                     style = MaterialTheme.typography.body2,
                     overflow = if (isExpanded) TextOverflow.Visible else TextOverflow.Ellipsis,
                     maxLines = if (isExpanded) Int.MAX_VALUE else maxLines,
@@ -93,6 +99,8 @@ fun MessageCardUi(
                         )
                 )
             }
+
+            bottomContent?.invoke()
         }
     }
 }

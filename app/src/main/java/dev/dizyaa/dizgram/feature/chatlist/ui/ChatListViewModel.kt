@@ -1,9 +1,11 @@
 package dev.dizyaa.dizgram.feature.chatlist.ui
 
 import androidx.lifecycle.viewModelScope
+import dev.dizyaa.dizgram.core.downloader.FileDownloadManager
 import dev.dizyaa.dizgram.core.uihelpers.StateViewModel
 import dev.dizyaa.dizgram.feature.chat.domain.Chat
 import dev.dizyaa.dizgram.feature.chat.domain.ChatId
+import dev.dizyaa.dizgram.feature.chat.domain.FileId
 import dev.dizyaa.dizgram.feature.chat.domain.isUser
 import dev.dizyaa.dizgram.feature.chatlist.data.ChatListRepository
 import dev.dizyaa.dizgram.feature.chatlist.domain.ChatFilter
@@ -21,12 +23,15 @@ import timber.log.Timber
 class ChatListViewModel(
     private val chatListRepository: ChatListRepository,
     private val userRepository: UserRepository,
+    private val fileDownloadManager: FileDownloadManager,
 ) : StateViewModel<ChatListContract.State, ChatListContract.Event, ChatListContract.Effect>() {
 
     private val bufferOfUpdates: MutableMap<ChatId, ChatUpdate> = mutableMapOf()
     private val bufferMutex = Mutex()
 
     private val currentUser = CompletableDeferred<User>()
+
+    private val fileIdToChatIdMap = mutableMapOf<FileId, ChatId>()
 
     init {
         loadChats(ChatFilter.Main)
@@ -49,7 +54,15 @@ class ChatListViewModel(
                 .chatsFlow
                 .onEach { chat ->
                     val user = currentUser.await()
-                    setState { copy(chatList = chatList + chat.toCardUi(user)) }
+                    val card = chat.toCardUi(user)
+                    setState { copy(chatList = chatList + card) }
+
+                    card.chatPhoto?.small?.let {
+                        if (it.needToDownload) {
+                            fileIdToChatIdMap[it.id] = card.id
+                            fileDownloadManager.download(it.id)
+                        }
+                    }
 
                     bufferMutex.withLock {
                         bufferOfUpdates.remove(chat.id)?.let {
@@ -68,6 +81,21 @@ class ChatListViewModel(
                 }
                 .launchIn(viewModelScope)
         }
+
+        makeRequest {
+            fileDownloadManager
+                .downloadedFlow
+                .onEach {
+                    val chatId = fileIdToChatIdMap[it.id] ?: return@onEach
+                    updateChat(
+                        ChatUpdate.Photo(
+                            chatId = chatId,
+                            file = it,
+                        )
+                    )
+                }
+                .launchIn(viewModelScope)
+        }
     }
 
     override fun setInitialState() = ChatListContract.State.Empty
@@ -75,7 +103,6 @@ class ChatListViewModel(
     override fun handleEvents(event: ChatListContract.Event) {
         when (event) {
             is ChatListContract.Event.SelectChat -> selectChat(event.chat)
-            is ChatListContract.Event.LoadChatImage -> loadChatImage(event.chat)
         }
     }
 
@@ -85,16 +112,6 @@ class ChatListViewModel(
 
     override fun onError(exception: Exception) {
         setEffect { ChatListContract.Effect.ShowError(exception.message ?: "Error") }
-    }
-
-    private fun loadChatImage(chat: ChatCard) {
-        makeRequest {
-            chat.chatPhoto?.small?.let {
-                if (it.needToDownload) {
-                    chatListRepository.loadPhotoByFileId(chat.id, it.id)
-                }
-            }
-        }
     }
 
     private suspend fun updateChat(update: ChatUpdate) {
@@ -120,18 +137,18 @@ class ChatListViewModel(
             is ChatUpdate.Photo -> {
                 val chatPhoto = chatList[index].chatPhoto ?: return
 
-                if (chatPhoto.small?.id == update.photo.id) {
+                if (chatPhoto.small?.id == update.file.id) {
                     chatList[index] = chatList[index].copy(
                         chatPhoto = chatPhoto.copy(
-                            small = update.photo
+                            small = update.file
                         )
                     )
                 }
 
-                if (chatPhoto.big?.id == update.photo.id) {
+                if (chatPhoto.big?.id == update.file.id) {
                     chatList[index] = chatList[index].copy(
                         chatPhoto = chatPhoto.copy(
-                            big = update.photo
+                            big = update.file
                         )
                     )
                 }

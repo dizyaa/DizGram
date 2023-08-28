@@ -4,14 +4,11 @@ import dev.dizyaa.dizgram.core.telegram.TdContext
 import dev.dizyaa.dizgram.core.telegram.TdRepository
 import dev.dizyaa.dizgram.feature.chat.domain.Chat
 import dev.dizyaa.dizgram.feature.chat.domain.ChatId
-import dev.dizyaa.dizgram.feature.chat.domain.FileId
 import dev.dizyaa.dizgram.feature.chatlist.data.mappers.toDomain
-import dev.dizyaa.dizgram.feature.chatlist.data.mappers.toDomainPhoto
 import dev.dizyaa.dizgram.feature.chatlist.domain.ChatFilter
 import dev.dizyaa.dizgram.feature.chatlist.domain.ChatUpdate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flow
@@ -33,16 +30,9 @@ class TelegramChatListRepository(
                 }
             }
 
-    private val fileIdToChatIdMap = mutableMapOf<FileId, ChatId>()
-
     override val chatsFlow: Flow<Chat> =
         getUpdatesFlow<TdApi.UpdateNewChat>().map {
-            it.chat.toDomain().also { chat ->
-                chat.chatPhoto?.let { photo ->
-                    photo.big?.id?.let { id -> fileIdToChatIdMap.put(id, chat.id) }
-                    photo.small?.id?.let { id -> fileIdToChatIdMap.put(id, chat.id) }
-                }
-            }
+            it.chat.toDomain()
         }
 
     private val updatesChatPhoto: Flow<ChatUpdate> = getUpdatesFlow<TdApi.UpdateChatPhoto>()
@@ -61,21 +51,8 @@ class TelegramChatListRepository(
             )
         }
 
-    private val updatePhotoDownload: Flow<ChatUpdate> = getUpdatesFlow<TdApi.UpdateFile>()
-        .filter { !it.file.toDomainPhoto().needToDownload }
-        .map { update ->
-            val photo = update.file.toDomainPhoto()
-            val chatId = fileIdToChatIdMap[photo.id] ?: ChatId(-1L) // skip
-
-            ChatUpdate.Photo(
-                chatId = chatId,
-                photo = photo,
-            )
-        }
-
     @OptIn(ExperimentalCoroutinesApi::class)
     override val chatUpdatesFlow: Flow<ChatUpdate> = flowOf(
-        updatePhotoDownload,
         updatesLastMessage,
         updatesChatPhoto,
     ).flattenMerge()
@@ -95,18 +72,6 @@ class TelegramChatListRepository(
                     // TODO: Returns a 404 error if all chats have been loaded.
                 }
             }
-        )
-    }
-
-    override suspend fun loadPhotoByFileId(chatId: ChatId, fileId: FileId) {
-        execute<TdApi.File>(
-            TdApi.DownloadFile(
-                fileId.value,
-                16,
-                0,
-                0,
-                false,
-            )
         )
     }
 

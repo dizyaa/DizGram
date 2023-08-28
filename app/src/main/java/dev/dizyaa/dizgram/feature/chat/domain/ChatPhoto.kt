@@ -4,20 +4,20 @@ import androidx.compose.runtime.Stable
 
 @Stable
 data class ChatPhoto(
-    val thumbnail: Photo?,
-    val big: Photo?,
-    val small: Photo?,
+    val thumbnail: File?,
+    val big: File?,
+    val small: File?,
 )
 
 @Stable
-data class Photo(
+data class File(
     val id: FileId,
     val path: String,
     val bytes: ByteArray?,
     val needToDownload: Boolean,
 ) {
     companion object {
-        fun fake() = Photo(
+        fun fake() = File(
             id = FileId(-1),
             path = "/kek",
             bytes = ByteArray(0),

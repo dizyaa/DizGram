@@ -97,7 +97,6 @@ fun ChatListUi(
             ChatList(
                 list = state.chatList,
                 onChatClick = { onEvent(ChatListContract.Event.SelectChat(it)) },
-                onChatNeedDownloadImage = { onEvent(ChatListContract.Event.LoadChatImage(it)) },
                 modifier = Modifier.fillMaxWidth(),
                 state = chatListState,
             )
@@ -117,7 +116,6 @@ fun ChatListUi(
 fun ChatList(
     list: List<ChatCard>,
     onChatClick: (ChatCard) -> Unit,
-    onChatNeedDownloadImage: (ChatCard) -> Unit,
     state: ScalingLazyListState,
     modifier: Modifier = Modifier,
 ) {
@@ -145,7 +143,6 @@ fun ChatList(
             ChatListItem(
                 chat = it,
                 onClick = { onChatClick(it) },
-                onNeedDownloadImage = { onChatNeedDownloadImage(it) }
             )
         }
     }
@@ -156,7 +153,6 @@ fun ChatList(
 fun ChatListItem(
     chat: ChatCard,
     onClick: () -> Unit,
-    onNeedDownloadImage: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Chip(
@@ -186,6 +182,7 @@ fun ChatListItem(
 
                         when (val content = it) {
                             is MessageContent.Text -> append(content.text)
+                            is MessageContent.Photo -> append(content.text)
                             is MessageContent.Unsupported -> Unit
                         }
                     },
@@ -201,11 +198,6 @@ fun ChatListItem(
                 painter = rememberAsyncImagePainter(
                     model = chat.chatPhoto?.toImageRequestData(),
                     contentScale = ContentScale.Crop,
-                    onSuccess = {
-                        if (chat.chatPhoto?.small?.needToDownload == true) {
-                            onNeedDownloadImage()
-                        }
-                    }
                 ),
                 contentDescription = null,
                 modifier = Modifier
@@ -226,7 +218,6 @@ private fun ChatListPreview() {
             ChatCard.fake(it.toLong())
         },
         onChatClick = { },
-        onChatNeedDownloadImage = { },
         state = rememberScalingLazyListState()
     )
 }

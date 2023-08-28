@@ -13,6 +13,6 @@ sealed class ChatUpdate(open val chatId: ChatId) {
 
     data class Photo(
         override val chatId: ChatId,
-        val photo: dev.dizyaa.dizgram.feature.chat.domain.Photo,
+        val file: dev.dizyaa.dizgram.feature.chat.domain.File,
     ) : ChatUpdate(chatId)
 }

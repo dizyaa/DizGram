@@ -12,9 +12,9 @@ data class Chat(
             lastMessage = Message.mock(id),
             name = "Chat #$id",
             chatPhoto = ChatPhoto(
-                Photo.fake(),
-                Photo.fake(),
-                Photo.fake(),
+                File.fake(),
+                File.fake(),
+                File.fake(),
             )
         )
     }

@@ -29,8 +29,9 @@ import androidx.wear.compose.material.curvedText
 import dev.dizyaa.dizgram.AppTheme
 import dev.dizyaa.dizgram.feature.chat.domain.ChatId
 import dev.dizyaa.dizgram.feature.chat.domain.MessageContent
-import dev.dizyaa.dizgram.feature.chat.ui.message.MessageCardUi
-import dev.dizyaa.dizgram.feature.chat.ui.message.MessageUnsupportedUi
+import dev.dizyaa.dizgram.feature.chat.ui.message.content.MessageCardUi
+import dev.dizyaa.dizgram.feature.chat.ui.message.content.MessagePhotoUi
+import dev.dizyaa.dizgram.feature.chat.ui.message.content.MessageUnsupportedUi
 import dev.dizyaa.dizgram.feature.chat.ui.model.MessageCard
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -165,8 +166,12 @@ private fun MessageListItem(
             messageCard = messageCard,
             onClick = onClick,
         )
+        is MessageContent.Photo -> MessagePhotoUi(
+            messageCard = messageCard,
+            onClick = onClick,
+        )
         is MessageContent.Unsupported -> MessageUnsupportedUi(
-            onClick = onClick
+            onClick = onClick,
         )
     }
 }

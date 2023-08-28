@@ -8,5 +8,5 @@ import org.koin.dsl.module
 
 val chatListModule = module {
     single<ChatListRepository> { TelegramChatListRepository(get()) }
-    viewModel { ChatListViewModel(get(), get()) }
+    viewModel { ChatListViewModel(get(), get(), get()) }
 }

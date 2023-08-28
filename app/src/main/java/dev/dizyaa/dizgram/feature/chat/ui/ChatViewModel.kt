@@ -1,9 +1,11 @@
 package dev.dizyaa.dizgram.feature.chat.ui
 
 import androidx.lifecycle.viewModelScope
+import dev.dizyaa.dizgram.core.downloader.FileDownloadManager
 import dev.dizyaa.dizgram.core.uihelpers.StateViewModel
 import dev.dizyaa.dizgram.feature.chat.data.ChatRepository
 import dev.dizyaa.dizgram.feature.chat.domain.Message
+import dev.dizyaa.dizgram.feature.chat.domain.MessageContent
 import dev.dizyaa.dizgram.feature.chat.domain.MessageId
 import dev.dizyaa.dizgram.feature.chat.ui.model.MessageCard
 import dev.dizyaa.dizgram.feature.user.data.UserRepository
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.onEach
 class ChatViewModel(
     private val chatRepository: ChatRepository,
     private val userRepository: UserRepository,
+    private val fileDownloadManager: FileDownloadManager,
 ) : StateViewModel<ChatContract.State, ChatContract.Event, ChatContract.Effect>() {
 
     private val currentUser = CompletableDeferred<User>()
@@ -22,6 +25,8 @@ class ChatViewModel(
     init {
         initUser()
         initChat()
+
+        subscribeDownloads()
         subscribeMessages()
     }
 
@@ -69,6 +74,8 @@ class ChatViewModel(
             val user = currentUser.await()
             val messages = listOf(message.toUi(user)) + state.value.messages
 
+            loadImagesFromMessage(message)
+
             setState { copy(messages = messages) }
         }
     }
@@ -78,7 +85,19 @@ class ChatViewModel(
             val user = currentUser.await()
             val messages = state.value.messages + messageList.map { it.toUi(user) }
 
+            messageList.forEach { loadImagesFromMessage(it) }
+
             setState { copy(messages = messages) }
+        }
+    }
+
+    private fun loadImagesFromMessage(message: Message) {
+        makeRequest {
+            val photoList = (message.content as? MessageContent.Photo) ?: return@makeRequest
+
+            photoList.fileList.forEach {
+                fileDownloadManager.download(it.id)
+            }
         }
     }
 
@@ -106,6 +125,16 @@ class ChatViewModel(
             ).let {
                 addToEndOfListMessages(it)
             }
+        }
+    }
+
+    private fun subscribeDownloads() {
+        makeRequest {
+            fileDownloadManager.downloadedFlow
+                .onEach {
+//                    updateMessage() TODO
+                }
+                .launchIn(viewModelScope)
         }
     }
 
