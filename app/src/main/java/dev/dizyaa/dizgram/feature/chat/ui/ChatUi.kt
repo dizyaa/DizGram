@@ -2,6 +2,7 @@ package dev.dizyaa.dizgram.feature.chat.ui
 
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -13,8 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.AnchorType
 import androidx.wear.compose.foundation.CurvedLayout
@@ -28,11 +31,10 @@ import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.curvedText
 import dev.dizyaa.dizgram.AppTheme
 import dev.dizyaa.dizgram.feature.chat.domain.ChatId
-import dev.dizyaa.dizgram.feature.chat.domain.MessageContent
 import dev.dizyaa.dizgram.feature.chat.ui.message.content.MessageCardUi
-import dev.dizyaa.dizgram.feature.chat.ui.message.content.MessagePhotoUi
 import dev.dizyaa.dizgram.feature.chat.ui.message.content.MessageUnsupportedUi
 import dev.dizyaa.dizgram.feature.chat.ui.model.MessageCard
+import dev.dizyaa.dizgram.feature.chat.ui.model.MessageCardType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
@@ -101,6 +103,8 @@ private fun MessageList(
     state: ScalingLazyListState,
     modifier: Modifier = Modifier
 ) {
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+
     val focusRequester = remember { FocusRequester() }
     val coroutineScope = rememberCoroutineScope()
     ScalingLazyColumn(
@@ -116,6 +120,7 @@ private fun MessageList(
         state = state,
         anchorType = ScalingLazyListAnchorType.ItemCenter,
         reverseLayout = true,
+        contentPadding = PaddingValues(vertical = (screenHeight / 4))
     ) {
         items(
             list,
@@ -161,16 +166,12 @@ private fun MessageListItem(
     messageCard: MessageCard,
     onClick: () -> Unit,
 ) {
-    when (messageCard.content) {
-        is MessageContent.Text -> MessageCardUi(
+    when (messageCard.type) {
+        is MessageCardType.WithMedia -> MessageCardUi(
             messageCard = messageCard,
             onClick = onClick,
         )
-        is MessageContent.Photo -> MessagePhotoUi(
-            messageCard = messageCard,
-            onClick = onClick,
-        )
-        is MessageContent.Unsupported -> MessageUnsupportedUi(
+        is MessageCardType.Unsupported -> MessageUnsupportedUi(
             onClick = onClick,
         )
     }

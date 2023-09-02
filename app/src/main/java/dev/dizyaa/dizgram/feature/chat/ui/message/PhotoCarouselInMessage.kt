@@ -3,14 +3,17 @@ package dev.dizyaa.dizgram.feature.chat.ui.message
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.material.MaterialTheme
 import coil.compose.AsyncImage
 import dev.dizyaa.dizgram.core.uihelpers.toImageRequestData
 import dev.dizyaa.dizgram.feature.chat.domain.File
@@ -36,7 +39,8 @@ private fun MultiPhoto(
 ) {
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier,
+        modifier = Modifier
+            .padding(8.dp),
     ) {
         items(fileList) {
             PhotoItem(file = it)
@@ -51,11 +55,13 @@ private fun SinglePhoto(
 ) {
     Box(
         modifier = modifier
+            .heightIn(max = 100.dp)
             .fillMaxWidth()
-            .clip(MaterialTheme.shapes.small)
+            .clip(RoundedCornerShape(8.dp))
     ) {
         AsyncImage(
             model = file.toImageRequestData(),
+            contentScale = ContentScale.Crop,
             contentDescription = null
         )
     }
@@ -69,10 +75,11 @@ private fun PhotoItem(
     Box(
         modifier = modifier
             .size(100.dp)
-            .clip(MaterialTheme.shapes.small)
+            .clip(RoundedCornerShape(8.dp))
     ) {
         AsyncImage(
             model = file.toImageRequestData(),
+            contentScale = ContentScale.Crop,
             contentDescription = null
         )
     }
