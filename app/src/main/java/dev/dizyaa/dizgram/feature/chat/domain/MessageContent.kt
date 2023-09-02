@@ -6,7 +6,7 @@ import timber.log.Timber
 
 sealed class MessageContent {
     data class Text(val text: String, val webPageUrl: String?) : MessageContent()
-    data class Photo(val fileList: List<dev.dizyaa.dizgram.feature.chat.domain.File>, val text: String) : MessageContent()
+    data class Photo(val file: File, val text: String) : MessageContent()
 //    data class Audio(val audio: File, val text: String) : MessageContent()
 //    data class Document(val document: File, val text: String) : MessageContent()
 //    data class Video(val videoUrl: String, val text: String) : MessageContent()
@@ -68,14 +68,14 @@ fun TdApi.MessageContent.toDomain(): MessageContent {
         TdApi.MessagePhoto.CONSTRUCTOR -> {
             val content = (this as TdApi.MessagePhoto)
             val text = content.caption.text
-            val photos = content.photo.sizes.map {
-                it.photo.toDomainPhoto()
-            }
+
+            //TODO: add sizes
+            val photo = content.photo.sizes.maxBy { it.photo.size }.photo.toDomainPhoto()
 
             Timber.d(content.toString())
 
             MessageContent.Photo(
-                fileList = photos,
+                file = photo,
                 text = text,
             )
         }

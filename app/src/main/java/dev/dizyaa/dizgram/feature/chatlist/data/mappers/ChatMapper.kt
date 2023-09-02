@@ -1,5 +1,6 @@
 package dev.dizyaa.dizgram.feature.chatlist.data.mappers
 
+import dev.dizyaa.dizgram.feature.chat.domain.AlbumMediaId
 import dev.dizyaa.dizgram.feature.chat.domain.Chat
 import dev.dizyaa.dizgram.feature.chat.domain.ChatId
 import dev.dizyaa.dizgram.feature.chat.domain.ChatPhoto
@@ -64,6 +65,9 @@ fun TdApi.Message.toDomain(): Message {
         isPinned = this.isPinned,
         status = this.sendingState.toDomain(),
         date = this.date,
+        albumId = this.mediaAlbumId
+            .takeIf { it > 0 }
+            ?.let { AlbumMediaId(it) }
     )
 }
 

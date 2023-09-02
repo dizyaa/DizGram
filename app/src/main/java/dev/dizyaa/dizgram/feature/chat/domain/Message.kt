@@ -12,6 +12,7 @@ data class Message(
     val isPinned: Boolean,
     val isEdited: Boolean,
     val status: SendingStatus,
+    val albumId: AlbumMediaId?,
     val date: Int,
 ) {
     companion object {
@@ -27,9 +28,13 @@ data class Message(
             isEdited = false,
             status = SendingStatus.InProgress,
             date = 0,
+            albumId = AlbumMediaId(id),
         )
     }
 }
 
 @Stable
 data class MessageId(val value: Long)
+
+@Stable
+data class AlbumMediaId(val value: Long)

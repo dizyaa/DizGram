@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,10 +57,11 @@ fun BaseMessage(
         Column(
             modifier = Modifier
                 .padding(
-                    horizontal = 8.dp
+                    start = if (fromUser) 16.dp else 0.dp,
+                    end = if (fromUser) 0.dp else 16.dp,
                 )
                 .align(align)
-                .clip(MaterialTheme.shapes.large)
+                .clip(RoundedCornerShape(16.dp))
                 .background(backgroundColor),
         ) {
             var expanded by remember {
@@ -71,33 +73,35 @@ fun BaseMessage(
 
             topContent?.invoke()
 
-            AnimatedContent(
-                targetState = expanded,
-                label = "expandedText",
-            ) { isExpanded ->
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.body2,
-                    overflow = if (isExpanded) TextOverflow.Visible else TextOverflow.Ellipsis,
-                    maxLines = if (isExpanded) Int.MAX_VALUE else maxLines,
-                    color = textColor,
-                    onTextLayout = {
-                        enabled = (!isExpanded && !it.hasVisualOverflow).not()
-                    },
-                    modifier = Modifier
-                        .padding(
-                            horizontal = 16.dp,
-                            vertical = 8.dp
-                        )
-                        .clickable(
-                            indication = null,
-                            interactionSource = MutableInteractionSource(),
-                            enabled = enabled,
-                            onClick = {
-                                expanded = !expanded
-                            }
-                        )
-                )
+            if (text.isNotEmpty()) {
+                AnimatedContent(
+                    targetState = expanded,
+                    label = "expandedText",
+                ) { isExpanded ->
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.body2,
+                        overflow = if (isExpanded) TextOverflow.Visible else TextOverflow.Ellipsis,
+                        maxLines = if (isExpanded) Int.MAX_VALUE else maxLines,
+                        color = textColor,
+                        onTextLayout = {
+                            enabled = (!isExpanded && !it.hasVisualOverflow).not()
+                        },
+                        modifier = Modifier
+                            .padding(
+                                horizontal = 16.dp,
+                                vertical = 8.dp
+                            )
+                            .clickable(
+                                indication = null,
+                                interactionSource = MutableInteractionSource(),
+                                enabled = enabled,
+                                onClick = {
+                                    expanded = !expanded
+                                }
+                            )
+                    )
+                }
             }
 
             bottomContent?.invoke()
