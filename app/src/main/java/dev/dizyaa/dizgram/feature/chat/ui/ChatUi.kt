@@ -167,11 +167,11 @@ private fun MessageListItem(
     onClick: () -> Unit,
 ) {
     when (messageCard.type) {
-        is MessageCardType.WithMedia -> MessageCardUi(
+        MessageCardType.TextWithMedia -> MessageCardUi(
             messageCard = messageCard,
             onClick = onClick,
         )
-        is MessageCardType.Unsupported -> MessageUnsupportedUi(
+        MessageCardType.Unsupported -> MessageUnsupportedUi(
             onClick = onClick,
         )
     }

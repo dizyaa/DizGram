@@ -1,5 +1,6 @@
 package dev.dizyaa.dizgram.feature.chat.ui.model
 
+import dev.dizyaa.dizgram.feature.chat.domain.AlbumMediaId
 import dev.dizyaa.dizgram.feature.chat.domain.File
 import dev.dizyaa.dizgram.feature.chat.domain.MessageId
 import dev.dizyaa.dizgram.feature.chat.domain.SenderId
@@ -13,6 +14,9 @@ data class MessageCard(
     val authorName: String?,
     val fromMe: Boolean,
     val date: Int,
+    val text: String,
+    val files: List<File>,
+    val albumMediaId: AlbumMediaId?,
     val type: MessageCardType,
 ) {
     companion object {
@@ -23,16 +27,14 @@ data class MessageCard(
             authorName = null,
             fromMe = fromMe,
             date = 0,
-            type = MessageCardType.WithMedia(text = "Ttt", files = emptyList())
+            albumMediaId = AlbumMediaId(id),
+            files = emptyList(),
+            text = "Message text",
+            type = MessageCardType.TextWithMedia,
         )
     }
 }
 
-sealed class MessageCardType {
-    data class WithMedia(
-        val text: String,
-        val files: List<File>,
-    ) : MessageCardType()
-
-    object Unsupported : MessageCardType()
+enum class MessageCardType {
+    TextWithMedia, Unsupported
 }

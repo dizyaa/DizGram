@@ -3,7 +3,6 @@ package dev.dizyaa.dizgram.feature.chat.ui
 import androidx.lifecycle.viewModelScope
 import dev.dizyaa.dizgram.core.downloader.FileDownloadManager
 import dev.dizyaa.dizgram.core.uihelpers.StateViewModel
-import dev.dizyaa.dizgram.core.utils.mapFirst
 import dev.dizyaa.dizgram.feature.chat.data.ChatRepository
 import dev.dizyaa.dizgram.feature.chat.domain.File
 import dev.dizyaa.dizgram.feature.chat.domain.FileId
@@ -68,17 +67,22 @@ class ChatViewModel(
             authorName = null,
             fromMe = user.userId == this.sender.senderId,
             date = this.date,
-            type = when (val content = this.content) {
-                is MessageContent.Photo -> MessageCardType.WithMedia(
-                    text = text ?: content.text,
-                    files = files ?: listOf(content.file),
-                )
-                is MessageContent.Text -> MessageCardType.WithMedia(
-                    text = text ?: content.text,
-                    files = files ?: emptyList(),
-                )
+            text = when (val content = this.content) {
+                is MessageContent.Photo -> text ?: content.text
+                is MessageContent.Text -> text ?: content.text
+                is MessageContent.Unsupported -> "Unsupported message"
+            },
+            files = when (val content = this.content) {
+                is MessageContent.Photo -> files ?: listOf(content.file)
+                is MessageContent.Text -> files ?: emptyList()
+                is MessageContent.Unsupported -> emptyList()
+            },
+            albumMediaId = this.albumId,
+            type = when (this.content) {
+                is MessageContent.Photo,
+                is MessageContent.Text -> MessageCardType.TextWithMedia
                 is MessageContent.Unsupported -> MessageCardType.Unsupported
-            }
+            },
         )
     }
 
@@ -106,22 +110,21 @@ class ChatViewModel(
 
     private fun addToEndOfListMessages(messageList: List<Message>) {
         makeRequest {
+            val user = currentUser.await()
+
             val cardList = messageList
+                .map { it.toUi(user) }
+
+            val messages = (state.value.messages + cardList)
                 .distinctBy { it.id }
-                .groupBy { it.albumId }
+                .groupBy { it.albumMediaId }
                 .flatMap { (key, list) ->
                     if (key == null) {
-                        val user = currentUser.await()
-                        list.map {
-                            it.toUi(user)
-                        }
+                        list
                     } else {
-                        val card = mergeMessagesToCard(list)
-                        if (card != null) listOf(card) else emptyList()
+                        mergeMessagesToCard(list)?.let { listOf(it) }?: emptyList()
                     }
                 }
-
-            val messages: List<MessageCard> = state.value.messages + cardList
 
             cardList.forEach { loadImagesFromMessage(it) }
 
@@ -131,9 +134,7 @@ class ChatViewModel(
 
     private fun loadImagesFromMessage(message: MessageCard) {
         makeRequest {
-            val files = (message.type as? MessageCardType.WithMedia)?.files ?: return@makeRequest
-
-            files.forEach { file ->
+            message.files.forEach { file ->
                 if (file.needToDownload) {
                     fileIdToMessageIdMap[file.id] = message.id
                     fileDownloadManager.download(file.id)
@@ -180,26 +181,20 @@ class ChatViewModel(
 
                         // TODO: refactoring
                         val messages = state.value.messages.map { card ->
-                            val fileList = (card.type as? MessageCardType.WithMedia)?.files ?: return@map card
-
                             if (card.id == messageId) {
                                 card.copy(
-                                    type = card.type.copy(
-                                        files = fileList.map { fileInternal ->
-                                            if (fileInternal.id == fileId) {
-                                                file
-                                            } else {
-                                                fileInternal
-                                            }
+                                    files = card.files.map { fileInternal ->
+                                        if (fileInternal.id == fileId) {
+                                            file
+                                        } else {
+                                            fileInternal
                                         }
-                                    )
+                                    }
                                 )
                             } else {
                                 card
                             }
                         }
-
-
 
                         setState { copy(messages = messages) }
                     }
@@ -219,32 +214,14 @@ class ChatViewModel(
         }
     }
 
-    private suspend fun mergeMessagesToCard(messages: List<Message>): MessageCard? {
-        val user = currentUser.await()
-
-        if (messages.isEmpty()) return null
-
-        if (messages.size == 1) {
+    private fun mergeMessagesToCard(messages: List<MessageCard>): MessageCard? {
+        if (messages.size <= 1) {
             return messages.firstOrNull()
-                ?.toUi(user)
         }
 
-        val files = messages.mapNotNull {
-            when (val content = it.content) {
-                is MessageContent.Photo -> content.file
-                else -> null
-            }
-        }
-
-        val text = messages.mapFirst { message ->
-            when (val content = message.content) {
-                is MessageContent.Photo -> content.text.takeIf { it.isNotEmpty() }
-                is MessageContent.Text -> content.text.takeIf { it.isNotEmpty() }
-                else -> null
-            }
-        } ?: return null
-
-        return messages.firstOrNull()?.toUi(user, files, text)
+        return messages.first().copy(
+            files = messages.flatMap { it.files }
+        )
     }
 
     companion object {
