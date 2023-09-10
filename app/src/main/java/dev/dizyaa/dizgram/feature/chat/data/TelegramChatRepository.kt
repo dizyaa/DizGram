@@ -45,6 +45,30 @@ class TelegramChatRepository(
             .map { it.toDomain() }
     }
 
+    override suspend fun sendTextMessage(message: String): Message {
+        val text = TdApi.FormattedText(
+            message,
+            emptyArray(),
+        )
+
+        val content = TdApi.InputMessageText(
+            text,
+            false,
+            true,
+        )
+
+        return execute<TdApi.Message>(
+            TdApi.SendMessage(
+                chatId.value,
+                0L,
+                0L,
+                null,
+                null,
+                content,
+            )
+        ).toDomain()
+    }
+
     override suspend fun openChat() {
         execute<TdApi.Ok>(TdApi.OpenChat(chatId.value))
     }

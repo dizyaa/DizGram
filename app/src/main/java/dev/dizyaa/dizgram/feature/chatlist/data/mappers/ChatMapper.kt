@@ -25,6 +25,7 @@ fun TdApi.Chat.toDomain(): Chat {
         lastMessage = lastMessage?.toDomain(),
         name = title,
         chatPhoto = photo?.toDomain(),
+        canSendMessage = this.permissions.canSendMessages,
     )
 }
 

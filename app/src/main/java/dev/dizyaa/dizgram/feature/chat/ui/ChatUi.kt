@@ -1,8 +1,11 @@
 package dev.dizyaa.dizgram.feature.chat.ui
 
+import android.view.inputmethod.EditorInfo
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -10,6 +13,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -30,8 +34,10 @@ import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.curvedText
 import dev.dizyaa.dizgram.AppTheme
+import dev.dizyaa.dizgram.core.uihelpers.TextRemoteInput
 import dev.dizyaa.dizgram.feature.chat.domain.ChatId
 import dev.dizyaa.dizgram.feature.chat.ui.message.content.MessageCardUi
+import dev.dizyaa.dizgram.feature.chat.ui.message.content.MessageInputUi
 import dev.dizyaa.dizgram.feature.chat.ui.message.content.MessageUnsupportedUi
 import dev.dizyaa.dizgram.feature.chat.ui.model.MessageCard
 import dev.dizyaa.dizgram.feature.chat.ui.model.MessageCardType
@@ -69,6 +75,15 @@ fun ChatUi(
 ) {
     val scalingLazyListState = rememberScalingLazyListState()
 
+    LaunchedEffect(Unit) {
+        effectFlow.collect {
+            when (it) {
+                is ChatContract.Effect.Navigation -> onNavigation(it)
+                else -> Unit
+            }
+        }
+    }
+
     Scaffold(
         positionIndicator = {
             PositionIndicator(
@@ -84,20 +99,40 @@ fun ChatUi(
             }
         }
     ) {
-        MessageList(
-            list = state.messages,
-            onMessageClick = { },
-            state = scalingLazyListState,
-            onNextPageRequire = {
-                onEvent(ChatContract.Event.NextPageRequired)
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            MessageList(
+                list = state.messages,
+                onMessageClick = { },
+                state = scalingLazyListState,
+                onNextPageRequire = {
+                    onEvent(ChatContract.Event.NextPageRequired)
+                },
+                inputText = state.inputTextMessage,
+            )
+
+            if (state.canSendMessage) {
+                TextRemoteInput(
+                    onValueChange = {
+                        onEvent(ChatContract.Event.ChangeInputTextMessage(it))
+                    },
+                    labelRemote = "Message",
+                    remoteInputKey = "message_key",
+                    isEmojisAllowed = true,
+                    inputActionType = EditorInfo.IME_ACTION_SEND,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                )
             }
-        )
+        }
     }
 }
 
 @Composable
 private fun MessageList(
     list: List<MessageCard>,
+    inputText: String,
     onMessageClick: (MessageCard) -> Unit,
     onNextPageRequire: () -> Unit,
     state: ScalingLazyListState,
@@ -122,6 +157,15 @@ private fun MessageList(
         reverseLayout = true,
         contentPadding = PaddingValues(vertical = (screenHeight / 4))
     ) {
+        item {
+            if (inputText.isNotBlank()) {
+                MessageInputUi(
+                    text = inputText,
+                    onClick = { }
+                )
+            }
+        }
+
         items(
             list,
         ) {

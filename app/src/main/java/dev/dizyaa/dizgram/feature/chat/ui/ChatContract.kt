@@ -12,6 +12,8 @@ class ChatContract {
         val messages: List<MessageCard>,
         val chatTitle: String,
         val chatImage: ChatPhoto?,
+        val inputTextMessage: String,
+        val canSendMessage: Boolean,
         override val isLoading: Boolean,
     ): UiState {
         companion object {
@@ -22,12 +24,15 @@ class ChatContract {
                 chatTitle = "Chat )",
                 chatImage = null,
                 isLoading = false,
+                inputTextMessage = "",
+                canSendMessage = true,
             )
         }
     }
 
     sealed class Event: UiEvent {
         object NextPageRequired : Event()
+        data class ChangeInputTextMessage(val text: String) : Event()
     }
 
     sealed class Effect: UiEffect {

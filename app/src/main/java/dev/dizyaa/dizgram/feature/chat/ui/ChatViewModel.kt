@@ -39,6 +39,7 @@ class ChatViewModel(
     override fun handleEvents(event: ChatContract.Event) {
         when (event) {
             is ChatContract.Event.NextPageRequired -> loadMoreMessagesRequired()
+            is ChatContract.Event.ChangeInputTextMessage -> changeInputText(event.text)
         }
     }
 
@@ -53,6 +54,8 @@ class ChatViewModel(
         chatImage = null,
         chatTitle = "",
         messages = LinkedList(),
+        inputTextMessage = "",
+        canSendMessage = false,
     )
 
     private fun Message.toUi(
@@ -151,9 +154,18 @@ class ChatViewModel(
                 setState {
                     copy(
                         chatTitle = chat.name,
-                        chatImage = chat.chatPhoto
+                        chatImage = chat.chatPhoto,
+                        canSendMessage = chat.canSendMessage,
                     )
                 }
+            }
+        }
+    }
+
+    private fun changeInputText(text: String) {
+        makeRequest {
+            setState {
+                copy(inputTextMessage = text)
             }
         }
     }
