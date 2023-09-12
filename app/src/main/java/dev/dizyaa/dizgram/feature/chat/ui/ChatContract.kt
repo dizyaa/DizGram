@@ -4,6 +4,7 @@ import dev.dizyaa.dizgram.core.uihelpers.UiEffect
 import dev.dizyaa.dizgram.core.uihelpers.UiEvent
 import dev.dizyaa.dizgram.core.uihelpers.UiState
 import dev.dizyaa.dizgram.feature.chat.domain.ChatPhoto
+import dev.dizyaa.dizgram.feature.chat.domain.InputMessage
 import dev.dizyaa.dizgram.feature.chat.ui.model.MessageCard
 
 class ChatContract {
@@ -12,7 +13,7 @@ class ChatContract {
         val messages: List<MessageCard>,
         val chatTitle: String,
         val chatImage: ChatPhoto?,
-        val inputTextMessage: String,
+        val inputTextMessage: InputMessage?,
         val canSendMessage: Boolean,
         override val isLoading: Boolean,
     ): UiState {
@@ -24,7 +25,7 @@ class ChatContract {
                 chatTitle = "Chat )",
                 chatImage = null,
                 isLoading = false,
-                inputTextMessage = "",
+                inputTextMessage = null,
                 canSendMessage = true,
             )
         }

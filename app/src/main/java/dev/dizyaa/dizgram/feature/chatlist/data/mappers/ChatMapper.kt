@@ -1,5 +1,6 @@
 package dev.dizyaa.dizgram.feature.chatlist.data.mappers
 
+import dev.dizyaa.dizgram.feature.chat.data.mappers.toDomain
 import dev.dizyaa.dizgram.feature.chat.domain.AlbumMediaId
 import dev.dizyaa.dizgram.feature.chat.domain.Chat
 import dev.dizyaa.dizgram.feature.chat.domain.ChatId
@@ -17,7 +18,6 @@ import org.drinkless.td.libcore.telegram.TdApi.MessageSenderChat
 import org.drinkless.td.libcore.telegram.TdApi.MessageSenderUser
 import org.drinkless.td.libcore.telegram.TdApi.MessageSendingStateFailed
 import org.drinkless.td.libcore.telegram.TdApi.MessageSendingStatePending
-import timber.log.Timber
 
 fun TdApi.Chat.toDomain(): Chat {
     return Chat(
@@ -26,8 +26,40 @@ fun TdApi.Chat.toDomain(): Chat {
         name = title,
         chatPhoto = photo?.toDomain(),
         canSendMessage = this.permissions.canSendMessages,
+        draftMessage = this.draftMessage?.toDomain(),
     )
 }
+
+fun TdApi.InputFile.toDomain(): File {
+    return when (this) {
+        is TdApi.InputFileRemote -> File(
+            id = FileId(this.id.toInt()),
+            path = "",
+            bytes = null,
+            needToDownload = true,
+        )
+        is TdApi.InputFileLocal -> File(
+            id = FileId(-1),
+            path = this.path,
+            bytes = null,
+            needToDownload = false,
+        )
+        is TdApi.InputFileId -> File(
+            id = FileId(this.id),
+            path = "",
+            bytes = null,
+            needToDownload = true,
+        )
+        is TdApi.InputFileGenerated -> File(
+            id = FileId(-1),
+            path = this.originalPath,
+            bytes = null,
+            needToDownload = false,
+        )
+        else -> throw RuntimeException("InputFile has not been mapped")
+    }
+}
+
 
 fun TdApi.ChatPhotoInfo.toDomain(): ChatPhoto {
     return ChatPhoto(
@@ -56,7 +88,6 @@ fun TdApi.File.toDomainPhoto(): File {
 }
 
 fun TdApi.Message.toDomain(): Message {
-    Timber.d(this.toString())
     return Message(
         id = MessageId(this.id),
         chatId = ChatId(this.chatId),

@@ -6,6 +6,7 @@ data class Chat(
     val name: String,
     val chatPhoto: ChatPhoto?,
     val canSendMessage: Boolean,
+    val draftMessage: InputMessage?,
 ) {
     companion object {
         fun fake(id: Long) = Chat(
@@ -18,6 +19,7 @@ data class Chat(
                 File.fake(),
             ),
             canSendMessage = true,
+            draftMessage = null,
         )
     }
 }

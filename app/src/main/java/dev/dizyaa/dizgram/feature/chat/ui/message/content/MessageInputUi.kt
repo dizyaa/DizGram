@@ -14,10 +14,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
+import dev.dizyaa.dizgram.feature.chat.domain.InputMessage
+import dev.dizyaa.dizgram.feature.chat.domain.MessageContent
 
 @Composable
 fun MessageInputUi(
-    text: String,
+    inputMessage: InputMessage,
     onClick: () -> Unit,
 ) {
     Box(
@@ -39,7 +41,11 @@ fun MessageInputUi(
                 .clickable { onClick() },
         ) {
             Text(
-                text = text,
+                text = when (val content = inputMessage.content) {
+                    is MessageContent.Text -> content.text
+                    is MessageContent.Photo -> content.text
+                    else -> ""
+                },
                 style = MaterialTheme.typography.body2,
                 color = MaterialTheme.colors.primary,
                 modifier = Modifier

@@ -2,8 +2,10 @@ package dev.dizyaa.dizgram.feature.chat.data
 
 import dev.dizyaa.dizgram.core.telegram.TdContext
 import dev.dizyaa.dizgram.core.telegram.TdRepository
+import dev.dizyaa.dizgram.feature.chat.data.mappers.toTdApi
 import dev.dizyaa.dizgram.feature.chat.domain.Chat
 import dev.dizyaa.dizgram.feature.chat.domain.ChatId
+import dev.dizyaa.dizgram.feature.chat.domain.InputMessage
 import dev.dizyaa.dizgram.feature.chat.domain.Message
 import dev.dizyaa.dizgram.feature.chat.domain.MessageId
 import dev.dizyaa.dizgram.feature.chatlist.data.mappers.toDomain
@@ -67,6 +69,16 @@ class TelegramChatRepository(
                 content,
             )
         ).toDomain()
+    }
+
+    override suspend fun setDraftMessage(message: InputMessage?) {
+        execute<TdApi.Ok>(
+            TdApi.SetChatDraftMessage(
+                chatId.value,
+                0L,
+                message?.toTdApi(),
+            )
+        )
     }
 
     override suspend fun openChat() {

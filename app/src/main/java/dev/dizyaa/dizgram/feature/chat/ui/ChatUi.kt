@@ -36,6 +36,7 @@ import androidx.wear.compose.material.curvedText
 import dev.dizyaa.dizgram.AppTheme
 import dev.dizyaa.dizgram.core.uihelpers.TextRemoteInput
 import dev.dizyaa.dizgram.feature.chat.domain.ChatId
+import dev.dizyaa.dizgram.feature.chat.domain.InputMessage
 import dev.dizyaa.dizgram.feature.chat.ui.message.content.MessageCardUi
 import dev.dizyaa.dizgram.feature.chat.ui.message.content.MessageInputUi
 import dev.dizyaa.dizgram.feature.chat.ui.message.content.MessageUnsupportedUi
@@ -109,7 +110,7 @@ fun ChatUi(
                 onNextPageRequire = {
                     onEvent(ChatContract.Event.NextPageRequired)
                 },
-                inputText = state.inputTextMessage,
+                inputMessage = state.inputTextMessage,
             )
 
             if (state.canSendMessage) {
@@ -132,7 +133,7 @@ fun ChatUi(
 @Composable
 private fun MessageList(
     list: List<MessageCard>,
-    inputText: String,
+    inputMessage: InputMessage?,
     onMessageClick: (MessageCard) -> Unit,
     onNextPageRequire: () -> Unit,
     state: ScalingLazyListState,
@@ -158,9 +159,9 @@ private fun MessageList(
         contentPadding = PaddingValues(vertical = (screenHeight / 4))
     ) {
         item {
-            if (inputText.isNotBlank()) {
+            if (inputMessage != null) {
                 MessageInputUi(
-                    text = inputText,
+                    inputMessage = inputMessage,
                     onClick = { }
                 )
             }
