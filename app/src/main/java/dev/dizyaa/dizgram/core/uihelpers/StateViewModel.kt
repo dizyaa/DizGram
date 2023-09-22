@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.net.UnknownHostException
+import timber.log.Timber
 import kotlin.coroutines.CoroutineContext
 
 
@@ -75,7 +75,6 @@ abstract class StateViewModel<
     protected fun <T> makeRequest(
         onLoadingChange: (Boolean) -> Unit = {},
         onFailure: (Exception) -> Unit = { onError(it) },
-        handleNetworkFailure: Boolean = false,
         withIndication: Boolean = true,
         context: CoroutineContext = Dispatchers.Default,
         request: suspend () -> (T),
@@ -89,9 +88,8 @@ abstract class StateViewModel<
                     onLoadingChange(true)
                     request()
                 } catch (ex: Exception) {
-                    if (handleNetworkFailure || ex !is UnknownHostException) {
-                        onFailure(ex)
-                    }
+                    Timber.e(ex)
+                    onFailure(ex)
                 } finally {
                     if (withIndication) removeLoadingFlag(flag)
                     onLoadingChange(false)

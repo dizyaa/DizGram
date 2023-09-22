@@ -15,15 +15,21 @@ abstract class TdRepository(
      */
     internal suspend inline fun <reified T: TdApi.Object> execute(
         function: TdApi.Function,
-        crossinline onError: (TdApi.Error) -> Unit = { }
+        noinline onError: ((TdApi.Error) -> Unit)? = null,
     ) = suspendCoroutine { continuation ->
         context.client.send(
             function,
             {
                 when (it) {
-                    is T -> continuation.resume(it)
+                    is TdApi.Error -> if (onError != null) {
+                        onError(it)
+                    } else {
+                        continuation.resumeWithException(
+                            exception = Exception("TdLib ERR: ${it.code} - ${it.message}")
+                        )
+                    }
 
-                    is TdApi.Error -> onError(it)
+                    is T -> continuation.resume(it)
 
                     else -> continuation.resumeWithException(
                         exception = Exception("Response of ${function::class} not is ${T::class}!")
