@@ -23,17 +23,14 @@ class TdContext(
         )
     val updates: SharedFlow<TdApi.Object> = _updates
 
-    @Synchronized
     private fun handleResult(obj: TdApi.Object) {
         _updates.tryEmit(obj)
     }
 
-    @Synchronized
     private fun handleException(throwable: Throwable) {
         Timber.e(throwable)
     }
 
-    @Synchronized
     private fun handleExceptionDefault(throwable: Throwable) {
         handleException(throwable)
     }

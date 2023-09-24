@@ -42,6 +42,6 @@ abstract class TdRepository(
         )
     }
 
-    internal inline fun <reified T> getUpdatesFlow(): Flow<T> =
+    internal inline fun <reified T: TdApi.Update> getUpdatesFlow(): Flow<T> =
         context.updates.filterIsInstance()
 }

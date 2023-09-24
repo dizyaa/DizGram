@@ -17,7 +17,7 @@ interface ChatRepository {
 
     suspend fun getChat(): Chat
 
-    suspend fun sendTextMessage(message: String): Message
+    suspend fun sendMessage(message: InputMessage): Message
 
     suspend fun setDraftMessage(message: InputMessage?)
 

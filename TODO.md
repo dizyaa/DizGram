@@ -1,2 +1,8 @@
-### Chat 
-- Add support send text message (UX things and animation)
+### Chat
+- Add voice messages (send and listen)
+
+### Renders in chat screen 
+- stickers and animated emoji
+- GIFs
+- videos
+- another files (like .docs)

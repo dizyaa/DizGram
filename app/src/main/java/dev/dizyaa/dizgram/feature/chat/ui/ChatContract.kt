@@ -32,6 +32,8 @@ class ChatContract {
     }
 
     sealed class Event: UiEvent {
+
+        object SendMessageClick : Event()
         object NextPageRequired : Event()
         data class ChangeInputTextMessage(val text: String) : Event()
     }

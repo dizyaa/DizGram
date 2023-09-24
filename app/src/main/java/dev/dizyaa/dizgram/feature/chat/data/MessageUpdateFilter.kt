@@ -1,11 +1,11 @@
 package dev.dizyaa.dizgram.feature.chat.data
 
 import dev.dizyaa.dizgram.core.utils.filteredMap
+import dev.dizyaa.dizgram.feature.chat.data.mappers.toDomain
 import dev.dizyaa.dizgram.feature.chat.domain.ChatId
 import dev.dizyaa.dizgram.feature.chat.domain.MessageId
 import dev.dizyaa.dizgram.feature.chat.domain.MessageUpdateType
 import dev.dizyaa.dizgram.feature.chat.domain.SendingStatus
-import dev.dizyaa.dizgram.feature.chat.domain.toDomain
 import dev.dizyaa.dizgram.feature.chatlist.data.mappers.toDomain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -30,7 +30,6 @@ fun Flow<TdApi.Update>.mapMessageUpdateToDomain(): Flow<MessageUpdate> {
             ChatId(it.messageId) to MessageUpdateType.Content(
                 content = it.newContent.toDomain()
             )
-
         }
         .filteredMap<TdApi.UpdateMessageEdited> {
             ChatId(it.messageId) to MessageUpdateType.IsEdited(isEdited = true)

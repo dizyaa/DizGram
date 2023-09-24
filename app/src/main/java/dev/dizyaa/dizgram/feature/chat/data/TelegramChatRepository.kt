@@ -3,6 +3,7 @@ package dev.dizyaa.dizgram.feature.chat.data
 import dev.dizyaa.dizgram.core.telegram.TdContext
 import dev.dizyaa.dizgram.core.telegram.TdRepository
 import dev.dizyaa.dizgram.feature.chat.data.mappers.toTdApi
+import dev.dizyaa.dizgram.feature.chat.data.mappers.toTdDraftMessage
 import dev.dizyaa.dizgram.feature.chat.domain.Chat
 import dev.dizyaa.dizgram.feature.chat.domain.ChatId
 import dev.dizyaa.dizgram.feature.chat.domain.InputMessage
@@ -47,26 +48,15 @@ class TelegramChatRepository(
             .map { it.toDomain() }
     }
 
-    override suspend fun sendTextMessage(message: String): Message {
-        val text = TdApi.FormattedText(
-            message,
-            emptyArray(),
-        )
-
-        val content = TdApi.InputMessageText(
-            text,
-            false,
-            true,
-        )
-
+    override suspend fun sendMessage(message: InputMessage): Message {
         return execute<TdApi.Message>(
             TdApi.SendMessage(
                 chatId.value,
                 0L,
-                0L,
+                message.replyMessageId?.value ?: 0,
                 null,
                 null,
-                content,
+                message.content?.toTdApi(),
             )
         ).toDomain()
     }
@@ -76,7 +66,7 @@ class TelegramChatRepository(
             TdApi.SetChatDraftMessage(
                 chatId.value,
                 0L,
-                message?.toTdApi(),
+                message?.toTdDraftMessage(),
             )
         )
     }

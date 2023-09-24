@@ -111,6 +111,9 @@ fun ChatUi(
                     onEvent(ChatContract.Event.NextPageRequired)
                 },
                 inputMessage = state.inputTextMessage,
+                onSendMessageClick = {
+                    onEvent(ChatContract.Event.SendMessageClick)
+                }
             )
 
             if (state.canSendMessage) {
@@ -136,6 +139,7 @@ private fun MessageList(
     inputMessage: InputMessage?,
     onMessageClick: (MessageCard) -> Unit,
     onNextPageRequire: () -> Unit,
+    onSendMessageClick: () -> Unit,
     state: ScalingLazyListState,
     modifier: Modifier = Modifier
 ) {
@@ -162,7 +166,8 @@ private fun MessageList(
             if (inputMessage != null) {
                 MessageInputUi(
                     inputMessage = inputMessage,
-                    onClick = { }
+                    onClick = { },
+                    onSendMessageClick = onSendMessageClick,
                 )
             }
         }

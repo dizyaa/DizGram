@@ -7,6 +7,7 @@ import dev.dizyaa.dizgram.feature.chat.data.ChatRepository
 import dev.dizyaa.dizgram.feature.chat.domain.File
 import dev.dizyaa.dizgram.feature.chat.domain.FileId
 import dev.dizyaa.dizgram.feature.chat.domain.InputMessage
+import dev.dizyaa.dizgram.feature.chat.domain.InputMessageContent
 import dev.dizyaa.dizgram.feature.chat.domain.Message
 import dev.dizyaa.dizgram.feature.chat.domain.MessageContent
 import dev.dizyaa.dizgram.feature.chat.domain.MessageId
@@ -41,6 +42,7 @@ class ChatViewModel(
         when (event) {
             is ChatContract.Event.NextPageRequired -> loadMoreMessagesRequired()
             is ChatContract.Event.ChangeInputTextMessage -> changeInputText(event.text)
+            is ChatContract.Event.SendMessageClick -> sendMessageClick()
         }
     }
 
@@ -136,6 +138,16 @@ class ChatViewModel(
         }
     }
 
+    private fun sendMessageClick() {
+        val message = state.value.inputTextMessage
+        if (message != null) {
+            makeRequest {
+                chatRepository.sendMessage(message)
+                setDraftMessage(null)
+            }
+        }
+    }
+
     private fun loadImagesFromMessage(message: MessageCard) {
         makeRequest {
             message.files.forEach { file ->
@@ -168,19 +180,17 @@ class ChatViewModel(
         makeRequest {
             val message = state.value.inputTextMessage
 
-            setState {
-                copy(
-                    inputTextMessage = message?.copy(
-                        content = when (val content = message.content) {
-                            is MessageContent.Text -> content.copy(text = text)
-                            is MessageContent.Photo -> content.copy(text = text)
-                            else -> null
-                        }
-                    ),
+            setDraftMessage(
+                message?.copy(
+                    content = when (val content = message.content) {
+                        is InputMessageContent.Text -> content.copy(text = text)
+                        else -> null
+                    }
+                ) ?: InputMessage(
+                    content = InputMessageContent.Text(text = text),
+                    replyMessageId = null
                 )
-            }
-
-            setDraftMessage(state.value.inputTextMessage)
+            )
         }
     }
 
@@ -189,6 +199,7 @@ class ChatViewModel(
             withIndication = false,
             onFailure = { }
         ) {
+            setState { copy(inputTextMessage = message) }
             chatRepository.setDraftMessage(message)
         }
     }

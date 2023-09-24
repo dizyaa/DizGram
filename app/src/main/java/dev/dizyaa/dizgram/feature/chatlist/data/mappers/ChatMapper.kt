@@ -11,7 +11,6 @@ import dev.dizyaa.dizgram.feature.chat.domain.Message
 import dev.dizyaa.dizgram.feature.chat.domain.MessageId
 import dev.dizyaa.dizgram.feature.chat.domain.MessageSender
 import dev.dizyaa.dizgram.feature.chat.domain.SendingStatus
-import dev.dizyaa.dizgram.feature.chat.domain.toDomain
 import dev.dizyaa.dizgram.feature.user.domain.UserId
 import org.drinkless.td.libcore.telegram.TdApi
 import org.drinkless.td.libcore.telegram.TdApi.MessageSenderChat
