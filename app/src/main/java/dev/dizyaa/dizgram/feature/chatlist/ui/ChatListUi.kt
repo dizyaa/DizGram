@@ -180,9 +180,11 @@ fun ChatListItem(
                             }
                         }
 
+                        // TODO: move to VM
                         when (val content = it) {
                             is MessageContent.Text -> append(content.text)
                             is MessageContent.Photo -> append(content.text)
+                            is MessageContent.Voice -> append(content.text)
                             is MessageContent.Unsupported -> Unit
                         }
                     },

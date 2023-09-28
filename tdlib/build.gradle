@@ -25,11 +25,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
-
-    lintOptions {
-        // use this line to check all rules except those listed
+    lint {
         disable 'InvalidPackage'
     }
+
 }
 
 dependencies {

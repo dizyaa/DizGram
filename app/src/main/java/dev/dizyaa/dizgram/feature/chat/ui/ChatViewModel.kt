@@ -76,18 +76,25 @@ class ChatViewModel(
             text = when (val content = this.content) {
                 is MessageContent.Photo -> text ?: content.text
                 is MessageContent.Text -> text ?: content.text
+                is MessageContent.Voice -> text ?: content.text
                 is MessageContent.Unsupported -> "Unsupported message"
             },
             files = when (val content = this.content) {
                 is MessageContent.Photo -> files ?: listOf(content.file)
-                is MessageContent.Text -> files ?: emptyList()
+                is MessageContent.Text,
+                is MessageContent.Voice -> files ?: emptyList()
                 is MessageContent.Unsupported -> emptyList()
             },
             albumMediaId = this.albumId,
             type = when (this.content) {
                 is MessageContent.Photo,
+                is MessageContent.Voice,
                 is MessageContent.Text -> MessageCardType.TextWithMedia
                 is MessageContent.Unsupported -> MessageCardType.Unsupported
+            },
+            voiceNote = when (this.content) {
+                is MessageContent.Voice -> content.voice
+                else -> null
             },
         )
     }

@@ -5,6 +5,7 @@ import dev.dizyaa.dizgram.feature.chat.domain.File
 import dev.dizyaa.dizgram.feature.chat.domain.MessageId
 import dev.dizyaa.dizgram.feature.chat.domain.SenderId
 import dev.dizyaa.dizgram.feature.chat.domain.SendingStatus
+import dev.dizyaa.dizgram.feature.chat.domain.VoiceNote
 import dev.dizyaa.dizgram.feature.user.domain.UserId
 
 data class MessageCard(
@@ -16,6 +17,7 @@ data class MessageCard(
     val date: Int,
     val text: String,
     val files: List<File>,
+    val voiceNote: VoiceNote?,
     val albumMediaId: AlbumMediaId?,
     val type: MessageCardType,
 ) {
@@ -31,10 +33,12 @@ data class MessageCard(
             files = emptyList(),
             text = "Message text",
             type = MessageCardType.TextWithMedia,
+            voiceNote = null,
         )
     }
 }
 
 enum class MessageCardType {
-    TextWithMedia, Unsupported
+    TextWithMedia,
+    Unsupported
 }

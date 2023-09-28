@@ -62,13 +62,13 @@ fun TdApi.InputFile.toDomain(): File {
 
 fun TdApi.ChatPhotoInfo.toDomain(): ChatPhoto {
     return ChatPhoto(
-        thumbnail = this.minithumbnail?.toDomainPhoto(),
-        big = this.big.toDomainPhoto(),
-        small = this.small.toDomainPhoto(),
+        thumbnail = this.minithumbnail?.toDomain(),
+        big = this.big.toDomain(),
+        small = this.small.toDomain(),
     )
 }
 
-fun TdApi.Minithumbnail.toDomainPhoto(): File {
+fun TdApi.Minithumbnail.toDomain(): File {
     return File(
         id = FileId(-1),
         path = "",
@@ -77,7 +77,7 @@ fun TdApi.Minithumbnail.toDomainPhoto(): File {
     )
 }
 
-fun TdApi.File.toDomainPhoto(): File {
+fun TdApi.File.toDomain(): File {
     return File(
         id = FileId(this.id),
         path = this.local.path,

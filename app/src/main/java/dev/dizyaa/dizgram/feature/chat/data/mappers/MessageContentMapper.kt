@@ -1,7 +1,7 @@
 package dev.dizyaa.dizgram.feature.chat.data.mappers
 
 import dev.dizyaa.dizgram.feature.chat.domain.MessageContent
-import dev.dizyaa.dizgram.feature.chatlist.data.mappers.toDomainPhoto
+import dev.dizyaa.dizgram.feature.chatlist.data.mappers.toDomain
 import org.drinkless.td.libcore.telegram.TdApi
 import timber.log.Timber
 
@@ -19,7 +19,7 @@ fun TdApi.MessageContent.toDomain(): MessageContent {
             val text = content.caption.text
 
             //TODO: add sizes
-            val photo = content.photo.sizes.maxBy { it.photo.size }.photo.toDomainPhoto()
+            val photo = content.photo.sizes.maxBy { it.photo.size }.photo.toDomain()
 
             Timber.d(content.toString())
 
@@ -27,6 +27,15 @@ fun TdApi.MessageContent.toDomain(): MessageContent {
                 file = photo,
                 text = text,
             )
+        }
+        TdApi.MessageVoiceNote.CONSTRUCTOR -> {
+            with (this as TdApi.MessageVoiceNote) {
+                MessageContent.Voice(
+                    text = caption.text,
+                    isListened = isListened,
+                    voice = voiceNote.toDomain(),
+                )
+            }
         }
 //        TdApi.MessageAudio.CONSTRUCTOR -> {
 //            val audioUrl = (this as TdApi.MessageAudio).audio.audio.
@@ -59,10 +68,6 @@ fun TdApi.MessageContent.toDomain(): MessageContent {
 //        TdApi.MessageVideoNote.CONSTRUCTOR -> {
 //            val videoNoteUrl = (this as TdApi.MessageVideoNote).videoNote.video.thumbnail.remote.fileId
 //            MessageContent.VideoNote(videoNoteUrl)
-//        }
-//        TdApi.MessageVoiceNote.CONSTRUCTOR -> {
-//            val voiceNoteUrl = (this as TdApi.MessageVoiceNote).voiceNote.voice.remote.fileId
-//            MessageContent.VoiceNote(voiceNoteUrl)
 //        }
 //        TdApi.MessageLocation.CONSTRUCTOR -> {
 //            val latitude = (this as TdApi.MessageLocation).location.latitude

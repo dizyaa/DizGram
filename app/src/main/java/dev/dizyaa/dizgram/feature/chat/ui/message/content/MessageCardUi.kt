@@ -17,6 +17,14 @@ fun MessageCardUi(
             PhotoCarouselInMessage(
                 fileList = messageCard.files
             )
+
+            messageCard.voiceNote?.let {
+                VoiceContent(
+                    isPlaying = false,
+                    voiceNote = it,
+                    onClick = { }
+                )
+            }
         }
     )
 }

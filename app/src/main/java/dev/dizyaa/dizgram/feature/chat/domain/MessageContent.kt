@@ -3,6 +3,11 @@ package dev.dizyaa.dizgram.feature.chat.domain
 sealed class MessageContent {
     data class Text(val text: String, val webPageUrl: String?) : MessageContent()
     data class Photo(val file: File, val text: String) : MessageContent()
+    data class Voice(
+        val text: String,
+        val voice: VoiceNote,
+        val isListened: Boolean,
+    ) : MessageContent()
 //    data class Audio(val audio: File, val text: String) : MessageContent()
 //    data class Document(val document: File, val text: String) : MessageContent()
 //    data class Video(val videoUrl: String, val text: String) : MessageContent()
@@ -11,7 +16,6 @@ sealed class MessageContent {
 //    data class ExpiredPhoto(val expiredPhotoUrl: String) : MessageContent()
 //    data class ExpiredVideo(val expiredVideoUrl: String) : MessageContent()
 //    data class VideoNote(val videoNoteUrl: String) : MessageContent()
-//    data class VoiceNote(val voiceNoteUrl: String) : MessageContent()
 //    data class Location(val latitude: Double, val longitude: Double) : MessageContent()
 //    data class Venue(val venueName: String, val latitude: Double, val longitude: Double) : MessageContent()
 //    data class Contact(val contactName: String, val phoneNumber: String) : MessageContent()
