@@ -109,8 +109,3 @@ fun TdApi.MessageSendingState?.toDomain(): SendingStatus {
         else -> SendingStatus.Read
     }
 }
-
-fun TdApi.LocalFile.needToDownload() =
-    !this.isDownloadingCompleted &&
-            this.canBeDownloaded &&
-            !this.isDownloadingActive

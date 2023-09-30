@@ -9,6 +9,7 @@ data class Chat(
     val draftMessage: InputMessage?,
 ) {
     companion object {
+        @Suppress("UNUSED")
         fun fake(id: Long) = Chat(
             id = ChatId(id),
             lastMessage = Message.mock(id),

@@ -22,6 +22,7 @@ data class RemoteFile(
 val LocalFile.needBeDownloaded
     get() = !this.isDownloadingActive && this.canBeDownloaded && !this.isDownloadingCompleted
 
+@Suppress("UNUSED")
 val File.sizeIsUnknown: Boolean
     get() = this.size == 0
 
