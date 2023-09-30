@@ -92,7 +92,7 @@ private fun NRow(
     list: List<Char>,
     onClickKey: (Char) -> Unit,
 ) {
-    Row() {
+    Row {
         list.forEach { item ->
             KButton(item = item.toString(), onClick = { onClickKey(item) })
         }

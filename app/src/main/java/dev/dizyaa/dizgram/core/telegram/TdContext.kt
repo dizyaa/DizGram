@@ -7,8 +7,7 @@ import org.drinkless.td.libcore.telegram.Client
 import org.drinkless.td.libcore.telegram.TdApi
 import timber.log.Timber
 
-class TdContext(
-) {
+class TdContext {
     internal val client: Client = Client.create(
         ::handleResult,
         ::handleException,

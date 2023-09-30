@@ -51,7 +51,7 @@ import org.koin.core.parameter.parametersOf
 fun ChatDestination(
     chatId: ChatId,
 ) {
-    val viewModel = koinViewModel<ChatViewModel>() {
+    val viewModel = koinViewModel<ChatViewModel> {
         parametersOf(chatId)
     }
 

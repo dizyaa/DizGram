@@ -48,7 +48,7 @@ fun TextRemoteInput(
     ) {
         Button(
             onClick = {
-                val intent: Intent = RemoteInputIntentHelper.createActionRemoteInputIntent();
+                val intent: Intent = RemoteInputIntentHelper.createActionRemoteInputIntent()
                 val remoteInputs: List<RemoteInput> = listOf(
                     RemoteInput.Builder(remoteInputKey)
                         .setLabel(labelRemote)
