@@ -1,27 +1,36 @@
 package dev.dizyaa.dizgram.core.uihelpers
 
-import dev.dizyaa.dizgram.feature.chat.domain.ChatPhoto
-import java.io.File
+import dev.dizyaa.dizgram.feature.chat.domain.File
+import dev.dizyaa.dizgram.feature.chat.domain.SizedPhoto
 
-fun ChatPhoto.toImageRequestData(allowBigPhoto: Boolean = false): Any? {
-    return this.toPriorityPhoto(allowBigPhoto)?.toImageRequestData()
+fun SizedPhoto.toImageRequestData(
+    allowBigPhoto: Boolean = false,
+): Any? {
+    if (allowBigPhoto) {
+        this.big?.let {
+            return it.toImageRequestData()
+        }
+    }
+
+    this.small?.let {
+        return it.toImageRequestData()
+    }
+
+    this.miniThumbnail?.let {
+        return it.data
+    }
+
+    return null
 }
 
-fun ChatPhoto.toPriorityPhoto(
-    allowBigPhoto: Boolean,
-): dev.dizyaa.dizgram.feature.chat.domain.File? {
-    return when {
-        allowBigPhoto && this.big != null-> this.big
-        (this.small != null) && this.small.path.isNotEmpty() -> this.small
-        (this.thumbnail != null) && (this.thumbnail.bytes?.isNotEmpty() == true) -> this.thumbnail
-        else -> null
+fun File.toImageRequestData(): Any? {
+    if (this.localFile.isDownloadingCompleted) {
+        val path = this.localFile.path
+        return when {
+            path.startsWith(prefix ="http") -> path
+            else -> java.io.File(path)
+        }
     }
-}
 
-fun dev.dizyaa.dizgram.feature.chat.domain.File.toImageRequestData(): Any? {
-    return when {
-        this.path.isNotEmpty() -> File(this.path)
-        this.bytes?.isNotEmpty() == true -> this.bytes
-        else -> null
-    }
+    return null
 }

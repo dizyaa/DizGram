@@ -4,6 +4,7 @@ import dev.dizyaa.dizgram.core.telegram.TdContext
 import dev.dizyaa.dizgram.core.telegram.TdRepository
 import dev.dizyaa.dizgram.feature.chat.domain.File
 import dev.dizyaa.dizgram.feature.chat.domain.FileId
+import dev.dizyaa.dizgram.feature.chat.domain.needBeDownloaded
 import dev.dizyaa.dizgram.feature.chatlist.data.mappers.toDomain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNot
@@ -17,12 +18,12 @@ class TelegramFileDownloadManager(
     override val downloadedFlow: Flow<File> = getUpdatesFlow<TdApi.UpdateFile>()
         .map { file ->
             file.file.toDomain().also { photo ->
-                if (photo.needToDownload) {
+                if (photo.localFile.needBeDownloaded) {
                     download(photo.id)
                 }
             }
         }
-        .filterNot { it.needToDownload }
+        .filterNot { it.localFile.needBeDownloaded }
 
     override suspend fun download(id: FileId) {
         execute<TdApi.File>(

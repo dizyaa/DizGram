@@ -4,13 +4,16 @@ import dev.dizyaa.dizgram.feature.chat.data.mappers.toDomain
 import dev.dizyaa.dizgram.feature.chat.domain.AlbumMediaId
 import dev.dizyaa.dizgram.feature.chat.domain.Chat
 import dev.dizyaa.dizgram.feature.chat.domain.ChatId
-import dev.dizyaa.dizgram.feature.chat.domain.ChatPhoto
 import dev.dizyaa.dizgram.feature.chat.domain.File
 import dev.dizyaa.dizgram.feature.chat.domain.FileId
+import dev.dizyaa.dizgram.feature.chat.domain.LocalFile
 import dev.dizyaa.dizgram.feature.chat.domain.Message
 import dev.dizyaa.dizgram.feature.chat.domain.MessageId
 import dev.dizyaa.dizgram.feature.chat.domain.MessageSender
+import dev.dizyaa.dizgram.feature.chat.domain.MiniThumbnail
+import dev.dizyaa.dizgram.feature.chat.domain.RemoteFile
 import dev.dizyaa.dizgram.feature.chat.domain.SendingStatus
+import dev.dizyaa.dizgram.feature.chat.domain.SizedPhoto
 import dev.dizyaa.dizgram.feature.user.domain.UserId
 import org.drinkless.td.libcore.telegram.TdApi
 import org.drinkless.td.libcore.telegram.TdApi.MessageSenderChat
@@ -23,66 +26,47 @@ fun TdApi.Chat.toDomain(): Chat {
         id = ChatId(id),
         lastMessage = lastMessage?.toDomain(),
         name = title,
-        chatPhoto = photo?.toDomain(),
+        sizedPhoto = photo?.toDomain(),
         canSendMessage = this.permissions.canSendMessages,
         draftMessage = this.draftMessage?.toDomain(),
     )
 }
 
-fun TdApi.InputFile.toDomain(): File {
-    return when (this) {
-        is TdApi.InputFileRemote -> File(
-            id = FileId(this.id.toInt()),
-            path = "",
-            bytes = null,
-            needToDownload = true,
-        )
-        is TdApi.InputFileLocal -> File(
-            id = FileId(-1),
-            path = this.path,
-            bytes = null,
-            needToDownload = false,
-        )
-        is TdApi.InputFileId -> File(
-            id = FileId(this.id),
-            path = "",
-            bytes = null,
-            needToDownload = true,
-        )
-        is TdApi.InputFileGenerated -> File(
-            id = FileId(-1),
-            path = this.originalPath,
-            bytes = null,
-            needToDownload = false,
-        )
-        else -> throw RuntimeException("InputFile has not been mapped")
-    }
-}
-
-
-fun TdApi.ChatPhotoInfo.toDomain(): ChatPhoto {
-    return ChatPhoto(
-        thumbnail = this.minithumbnail?.toDomain(),
+fun TdApi.ChatPhotoInfo.toDomain(): SizedPhoto {
+    return SizedPhoto(
+        miniThumbnail = this.minithumbnail?.toDomain(),
         big = this.big.toDomain(),
         small = this.small.toDomain(),
     )
 }
 
-fun TdApi.Minithumbnail.toDomain(): File {
-    return File(
-        id = FileId(-1),
-        path = "",
-        bytes = this.data,
-        needToDownload = false,
+fun TdApi.Minithumbnail.toDomain(): MiniThumbnail {
+    return MiniThumbnail(
+        data = this.data,
     )
 }
 
 fun TdApi.File.toDomain(): File {
     return File(
         id = FileId(this.id),
-        path = this.local.path,
-        bytes = null,
-        needToDownload = this.local.needToDownload()
+        size = this.size,
+        localFile = this.local.toDomain(),
+        remoteFile = this.remote.toDomain(),
+    )
+}
+
+fun TdApi.LocalFile.toDomain(): LocalFile {
+    return LocalFile(
+        path = this.path,
+        isDownloadingActive = isDownloadingActive,
+        isDownloadingCompleted = isDownloadingCompleted,
+        canBeDownloaded = canBeDownloaded,
+    )
+}
+
+fun TdApi.RemoteFile.toDomain(): RemoteFile {
+    return RemoteFile(
+        id = this.id,
     )
 }
 

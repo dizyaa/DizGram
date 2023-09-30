@@ -13,7 +13,7 @@ fun Flow<TdApi.Update>.mapChatUpdateToDomain(): Flow<ChatUpdate> {
         .filteredMap<TdApi.UpdateChatPhoto> {
             ChatUpdate.ChatPhoto(
                 chatId = ChatId(it.chatId),
-                chatPhoto = it.photo?.toDomain(),
+                sizedPhoto = it.photo?.toDomain(),
             )
         }
         .filteredMap<TdApi.UpdateChatLastMessage> {

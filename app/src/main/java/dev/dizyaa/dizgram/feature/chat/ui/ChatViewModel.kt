@@ -11,6 +11,7 @@ import dev.dizyaa.dizgram.feature.chat.domain.InputMessageContent
 import dev.dizyaa.dizgram.feature.chat.domain.Message
 import dev.dizyaa.dizgram.feature.chat.domain.MessageContent
 import dev.dizyaa.dizgram.feature.chat.domain.MessageId
+import dev.dizyaa.dizgram.feature.chat.domain.needBeDownloaded
 import dev.dizyaa.dizgram.feature.chat.ui.model.MessageCard
 import dev.dizyaa.dizgram.feature.chat.ui.model.MessageCardType
 import dev.dizyaa.dizgram.feature.user.data.UserRepository
@@ -158,7 +159,7 @@ class ChatViewModel(
     private fun loadImagesFromMessage(message: MessageCard) {
         makeRequest {
             message.files.forEach { file ->
-                if (file.needToDownload) {
+                if (file.localFile.needBeDownloaded) {
                     fileIdToMessageIdMap[file.id] = message.id
                     fileDownloadManager.download(file.id)
                 }
@@ -174,7 +175,7 @@ class ChatViewModel(
                 setState {
                     copy(
                         chatTitle = chat.name,
-                        chatImage = chat.chatPhoto,
+                        chatImage = chat.sizedPhoto,
                         canSendMessage = chat.canSendMessage,
                         inputTextMessage = chat.draftMessage,
                     )
@@ -228,7 +229,7 @@ class ChatViewModel(
             fileDownloadManager
                 .downloadedFlow
                 .onEach { file ->
-                    if (!file.needToDownload) {
+                    if (!file.localFile.needBeDownloaded) {
                         val fileId = file.id
                         val messageId = fileIdToMessageIdMap[fileId]
 

@@ -3,8 +3,8 @@ package dev.dizyaa.dizgram.feature.chat.ui
 import dev.dizyaa.dizgram.core.uihelpers.UiEffect
 import dev.dizyaa.dizgram.core.uihelpers.UiEvent
 import dev.dizyaa.dizgram.core.uihelpers.UiState
-import dev.dizyaa.dizgram.feature.chat.domain.ChatPhoto
 import dev.dizyaa.dizgram.feature.chat.domain.InputMessage
+import dev.dizyaa.dizgram.feature.chat.domain.SizedPhoto
 import dev.dizyaa.dizgram.feature.chat.ui.model.MessageCard
 
 class ChatContract {
@@ -12,7 +12,7 @@ class ChatContract {
     data class State(
         val messages: List<MessageCard>,
         val chatTitle: String,
-        val chatImage: ChatPhoto?,
+        val chatImage: SizedPhoto?,
         val inputTextMessage: InputMessage?,
         val canSendMessage: Boolean,
         override val isLoading: Boolean,

@@ -28,17 +28,17 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.ScalingLazyListAnchorType
+import androidx.wear.compose.foundation.lazy.ScalingLazyListState
+import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Scaffold
-import androidx.wear.compose.material.ScalingLazyColumn
-import androidx.wear.compose.material.ScalingLazyListAnchorType
-import androidx.wear.compose.material.ScalingLazyListState
 import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.items
-import androidx.wear.compose.material.rememberScalingLazyListState
 import coil.compose.rememberAsyncImagePainter
 import dev.dizyaa.dizgram.core.uihelpers.SIDE_EFFECTS_KEY
 import dev.dizyaa.dizgram.core.uihelpers.toImageRequestData
@@ -198,7 +198,7 @@ fun ChatListItem(
         icon = {
             Image(
                 painter = rememberAsyncImagePainter(
-                    model = chat.chatPhoto?.toImageRequestData(),
+                    model = chat.sizedPhoto?.toImageRequestData(),
                     contentScale = ContentScale.Crop,
                 ),
                 contentDescription = null,

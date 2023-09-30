@@ -4,7 +4,7 @@ data class Chat(
     val id: ChatId,
     val lastMessage: Message?,
     val name: String,
-    val chatPhoto: ChatPhoto?,
+    val sizedPhoto: SizedPhoto?,
     val canSendMessage: Boolean,
     val draftMessage: InputMessage?,
 ) {
@@ -13,11 +13,7 @@ data class Chat(
             id = ChatId(id),
             lastMessage = Message.mock(id),
             name = "Chat #$id",
-            chatPhoto = ChatPhoto(
-                File.fake(),
-                File.fake(),
-                File.fake(),
-            ),
+            sizedPhoto = null,
             canSendMessage = true,
             draftMessage = null,
         )

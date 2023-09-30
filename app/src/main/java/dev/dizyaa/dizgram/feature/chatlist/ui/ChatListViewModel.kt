@@ -7,6 +7,7 @@ import dev.dizyaa.dizgram.feature.chat.domain.Chat
 import dev.dizyaa.dizgram.feature.chat.domain.ChatId
 import dev.dizyaa.dizgram.feature.chat.domain.FileId
 import dev.dizyaa.dizgram.feature.chat.domain.isUser
+import dev.dizyaa.dizgram.feature.chat.domain.needBeDownloaded
 import dev.dizyaa.dizgram.feature.chatlist.data.ChatListRepository
 import dev.dizyaa.dizgram.feature.chatlist.domain.ChatFilter
 import dev.dizyaa.dizgram.feature.chatlist.domain.ChatUpdate
@@ -57,8 +58,8 @@ class ChatListViewModel(
                     val card = chat.toCardUi(user)
                     setState { copy(chatList = chatList + card) }
 
-                    card.chatPhoto?.small?.let {
-                        if (it.needToDownload) {
+                    card.sizedPhoto?.small?.let {
+                        if (it.localFile.needBeDownloaded) {
                             fileIdToChatIdMap[it.id] = card.id
                             fileDownloadManager.download(it.id)
                         }
@@ -129,17 +130,17 @@ class ChatListViewModel(
 
         when (update) {
             is ChatUpdate.ChatPhoto -> {
-                chatList[index] = chatList[index].copy(chatPhoto = update.chatPhoto)
+                chatList[index] = chatList[index].copy(sizedPhoto = update.sizedPhoto)
             }
             is ChatUpdate.LastMessage -> {
                 chatList[index] = chatList[index].copy(lastMessage = update.message)
             }
             is ChatUpdate.Photo -> {
-                val chatPhoto = chatList[index].chatPhoto ?: return
+                val chatPhoto = chatList[index].sizedPhoto ?: return
 
                 if (chatPhoto.small?.id == update.file.id) {
                     chatList[index] = chatList[index].copy(
-                        chatPhoto = chatPhoto.copy(
+                        sizedPhoto = chatPhoto.copy(
                             small = update.file
                         )
                     )
@@ -147,7 +148,7 @@ class ChatListViewModel(
 
                 if (chatPhoto.big?.id == update.file.id) {
                     chatList[index] = chatList[index].copy(
-                        chatPhoto = chatPhoto.copy(
+                        sizedPhoto = chatPhoto.copy(
                             big = update.file
                         )
                     )
@@ -174,7 +175,7 @@ class ChatListViewModel(
             id = id,
             lastMessage = lastMessage,
             name = name,
-            chatPhoto = chatPhoto,
+            sizedPhoto = sizedPhoto,
             lastMessageFromMyself = (senderId?.isUser() == true) && (senderId == user.userId)
         )
     }
