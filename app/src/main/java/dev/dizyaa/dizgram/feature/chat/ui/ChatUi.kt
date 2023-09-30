@@ -22,7 +22,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.wear.compose.foundation.AnchorType
 import androidx.wear.compose.foundation.CurvedLayout
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
@@ -50,7 +49,6 @@ import org.koin.core.parameter.parametersOf
 
 @Composable
 fun ChatDestination(
-    navController: NavController,
     chatId: ChatId,
 ) {
     val viewModel = koinViewModel<ChatViewModel>() {
@@ -219,7 +217,6 @@ private fun MessageListItem(
     when (messageCard.type) {
         MessageCardType.TextWithMedia -> MessageCardUi(
             messageCard = messageCard,
-            onClick = onClick,
         )
         MessageCardType.Unsupported -> MessageUnsupportedUi(
             onClick = onClick,

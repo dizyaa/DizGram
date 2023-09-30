@@ -8,7 +8,6 @@ import dev.dizyaa.dizgram.feature.chat.ui.model.MessageCard
 @Composable
 fun MessageCardUi(
     messageCard: MessageCard,
-    onClick: () -> Unit,
 ) {
     BaseMessage(
         text = messageCard.text,

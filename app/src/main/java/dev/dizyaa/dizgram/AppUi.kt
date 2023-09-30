@@ -31,7 +31,6 @@ fun AppUi(
 
         composable(Router.Chat.route) {
             ChatDestination(
-                navController = navController,
                 chatId = it.arguments?.getString("chatId")?.toLongOrNull()?.let { ChatId(it) }
                     ?: throw RuntimeException("Chat Id is not pass for chat/{chatId}!")
             )
