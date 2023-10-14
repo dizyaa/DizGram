@@ -1,2 +1,2 @@
 # DizGram
-A Telegram client for Wear OS
+The Telegram client for Wear OS
