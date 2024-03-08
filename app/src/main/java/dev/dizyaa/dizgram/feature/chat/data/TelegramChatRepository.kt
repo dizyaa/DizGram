@@ -10,6 +10,7 @@ import dev.dizyaa.dizgram.feature.chat.domain.InputMessage
 import dev.dizyaa.dizgram.feature.chat.domain.Message
 import dev.dizyaa.dizgram.feature.chat.domain.MessageId
 import dev.dizyaa.dizgram.feature.chatlist.data.mappers.toDomain
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
@@ -18,7 +19,8 @@ import org.drinkless.td.libcore.telegram.TdApi
 class TelegramChatRepository(
     override val chatId: ChatId,
     context: TdContext,
-): TdRepository(context), ChatRepository {
+    coroutineScope: CoroutineScope,
+): TdRepository(context, coroutineScope), ChatRepository {
 
     override suspend fun getChat(): Chat {
         return execute<TdApi.Chat>(TdApi.GetChat(chatId.value)).toDomain()

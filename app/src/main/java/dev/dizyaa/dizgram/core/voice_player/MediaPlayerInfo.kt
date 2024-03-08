@@ -1,0 +1,26 @@
+package dev.dizyaa.dizgram.core.voice_player
+
+enum class MediaPlayerInfo(val value: Int) {
+    MEDIA_INFO_UNKNOWN(1),
+    MEDIA_INFO_STARTED_AS_NEXT(2),
+    MEDIA_INFO_VIDEO_RENDERING_START(3),
+    MEDIA_INFO_VIDEO_TRACK_LAGGING(700),
+    MEDIA_INFO_BUFFERING_START(701),
+    MEDIA_INFO_BUFFERING_END(702),
+    MEDIA_INFO_NETWORK_BANDWIDTH(703),
+    MEDIA_INFO_BAD_INTERLEAVING(800),
+    MEDIA_INFO_NOT_SEEKABLE(801),
+    MEDIA_INFO_METADATA_UPDATE(802),
+    MEDIA_INFO_EXTERNAL_METADATA_UPDATE(803),
+    MEDIA_INFO_AUDIO_NOT_PLAYING(804),
+    MEDIA_INFO_VIDEO_NOT_PLAYING(805),
+    MEDIA_INFO_TIMED_TEXT_ERROR(900),
+    MEDIA_INFO_UNSUPPORTED_SUBTITLE(901),
+    MEDIA_INFO_SUBTITLE_TIMED_OUT(902);
+
+    companion object {
+        fun fromInt(value: Int): MediaPlayerInfo? {
+            return values().find { it.value == value }
+        }
+    }
+}

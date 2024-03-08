@@ -1,7 +1,10 @@
 package dev.dizyaa.dizgram.core.telegram
 
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.shareIn
 import org.drinkless.td.libcore.telegram.TdApi
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -9,6 +12,7 @@ import kotlin.coroutines.suspendCoroutine
 
 abstract class TdRepository(
     private val context: TdContext,
+    private val coroutineScope: CoroutineScope,
 ) {
     /**
      * Execute Telegram function and wait response
@@ -42,6 +46,10 @@ abstract class TdRepository(
         )
     }
 
-    internal inline fun <reified T: TdApi.Update> getUpdatesFlow(): Flow<T> =
-        context.updates.filterIsInstance()
+    internal inline fun <reified T: TdApi.Update> getUpdatesFlow(): SharedFlow<T> =
+        context.updates.filterIsInstance<T>().shareIn(
+            coroutineScope,
+            started = SharingStarted.Lazily,
+            replay = 0,
+        )
 }

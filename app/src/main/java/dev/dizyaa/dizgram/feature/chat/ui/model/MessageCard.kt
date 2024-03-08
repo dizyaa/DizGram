@@ -20,6 +20,8 @@ data class MessageCard(
     val voiceNote: VoiceNote?,
     val albumMediaId: AlbumMediaId?,
     val type: MessageCardType,
+    val playingStatus: PlayingStatus,
+    val progress: Progress,
 ) {
     companion object {
         fun mock(id: Long = -1L, fromMe: Boolean = true) = MessageCard(
@@ -34,11 +36,24 @@ data class MessageCard(
             text = "Message text",
             type = MessageCardType.TextWithMedia,
             voiceNote = null,
+            playingStatus = PlayingStatus.Stop,
+            progress = Progress(0f),
         )
     }
 }
+
+enum class PlayingStatus {
+    Playing, Stop, Pause, Downloading, NeedDownload,
+}
+
+val PlayingStatus.isDownloading: Boolean
+    get() = this == PlayingStatus.Downloading
+
+val PlayingStatus.isPlaying: Boolean
+    get() = this == PlayingStatus.Playing
 
 enum class MessageCardType {
     TextWithMedia,
     Unsupported
 }
+

@@ -3,20 +3,27 @@ package dev.dizyaa.dizgram.feature.chat.ui
 import androidx.lifecycle.viewModelScope
 import dev.dizyaa.dizgram.core.downloader.FileDownloadManager
 import dev.dizyaa.dizgram.core.uihelpers.StateViewModel
+import dev.dizyaa.dizgram.core.utils.mapFirst
 import dev.dizyaa.dizgram.feature.chat.data.ChatRepository
 import dev.dizyaa.dizgram.feature.chat.domain.File
 import dev.dizyaa.dizgram.feature.chat.domain.FileId
 import dev.dizyaa.dizgram.feature.chat.domain.InputMessage
 import dev.dizyaa.dizgram.feature.chat.domain.InputMessageContent
+import dev.dizyaa.dizgram.feature.chat.domain.LocalFile
 import dev.dizyaa.dizgram.feature.chat.domain.Message
 import dev.dizyaa.dizgram.feature.chat.domain.MessageContent
 import dev.dizyaa.dizgram.feature.chat.domain.MessageId
+import dev.dizyaa.dizgram.feature.chat.domain.VoiceNote
 import dev.dizyaa.dizgram.feature.chat.domain.needBeDownloaded
 import dev.dizyaa.dizgram.feature.chat.ui.model.MessageCard
 import dev.dizyaa.dizgram.feature.chat.ui.model.MessageCardType
+import dev.dizyaa.dizgram.feature.chat.ui.model.PlayingStatus
+import dev.dizyaa.dizgram.feature.chat.ui.model.Progress
+import dev.dizyaa.dizgram.feature.chat.ui.model.VoiceNotePlayerState
 import dev.dizyaa.dizgram.feature.user.data.UserRepository
 import dev.dizyaa.dizgram.feature.user.domain.User
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import java.util.LinkedList
@@ -35,7 +42,8 @@ class ChatViewModel(
         initUser()
         initChat()
 
-        subscribeDownloads()
+        subscribePhotoDownloads()
+        subscribeVoiceNoteDownloads()
         subscribeMessages()
     }
 
@@ -44,6 +52,10 @@ class ChatViewModel(
             is ChatContract.Event.NextPageRequired -> loadMoreMessagesRequired()
             is ChatContract.Event.ChangeInputTextMessage -> changeInputText(event.text)
             is ChatContract.Event.SendMessageClick -> sendMessageClick()
+            is ChatContract.Event.PlayVoiceNoteClick -> playVoiceNote(event.messageId, event.voiceNote)
+            is ChatContract.Event.PauseVoiceNoteClick -> pauseVoiceNote(event.messageId, event.voiceNote)
+            is ChatContract.Event.DownloadVoiceNoteClick -> downloadVoiceNote(event.messageId, event.voiceNote)
+            is ChatContract.Event.StopDownloadVoiceNoteClick -> stopDownloadVoiceNote(event.messageId, event.voiceNote)
         }
     }
 
@@ -60,6 +72,7 @@ class ChatViewModel(
         messages = LinkedList(),
         inputTextMessage = null,
         canSendMessage = false,
+        voiceNotePlayerState = VoiceNotePlayerState.Empty,
     )
 
     private fun Message.toUi(
@@ -67,6 +80,14 @@ class ChatViewModel(
         files: List<File>? = null,
         text: String? = null,
     ): MessageCard {
+        val voiceNote = when (this.content) {
+            is MessageContent.Voice -> content.voice
+            else -> null
+        }
+
+        val playingStatus = voiceNote?.file?.localFile?.getPlayingStatus()
+                ?: PlayingStatus.NeedDownload
+
         return MessageCard(
             id = this.id,
             senderId = this.sender.senderId,
@@ -93,10 +114,9 @@ class ChatViewModel(
                 is MessageContent.Text -> MessageCardType.TextWithMedia
                 is MessageContent.Unsupported -> MessageCardType.Unsupported
             },
-            voiceNote = when (this.content) {
-                is MessageContent.Voice -> content.voice
-                else -> null
-            },
+            voiceNote = voiceNote,
+            playingStatus = playingStatus,
+            progress = Progress(0f),
         )
     }
 
@@ -140,7 +160,12 @@ class ChatViewModel(
                     }
                 }
 
-            cardList.forEach { loadImagesFromMessage(it) }
+            cardList.forEach {
+                loadImagesFromMessage(it)
+                it.voiceNote?.let { voice ->
+                    downloadVoiceNote(it.id, voice)
+                }
+            }
 
             setState { copy(messages = messages) }
         }
@@ -161,7 +186,7 @@ class ChatViewModel(
             message.files.forEach { file ->
                 if (file.localFile.needBeDownloaded) {
                     fileIdToMessageIdMap[file.id] = message.id
-                    fileDownloadManager.download(file.id)
+                    fileDownloadManager.downloadById(file.id, File.Type.Photo)
                 }
             }
         }
@@ -224,33 +249,93 @@ class ChatViewModel(
         }
     }
 
-    private fun subscribeDownloads() {
+    private fun playVoiceNote(messageId: MessageId, voiceNote: VoiceNote) {
+        makeRequest {
+            if (voiceNote.file.localFile.needBeDownloaded) {
+                downloadVoiceNote(messageId, voiceNote)
+            } else {
+                playVoice(messageId, voiceNote)
+            }
+        }
+    }
+
+    private fun pauseVoiceNote(messageId: MessageId, voiceNote: VoiceNote) {
+        setState {
+            copy(
+                voiceNotePlayerState = voiceNotePlayerState.copy(
+                    isPlaying = false,
+                    messageId = messageId,
+                )
+            )
+        }
+        changeMessageState(messageId) {
+            it.copy(
+                playingStatus = PlayingStatus.Pause
+            )
+        }
+    }
+
+    private fun downloadVoiceNote(messageId: MessageId, voiceNote: VoiceNote) {
+        makeRequest {
+            val fileId = voiceNote.file.id
+            fileIdToMessageIdMap[fileId] = messageId
+            fileDownloadManager.downloadById(fileId, File.Type.VoiceNote)
+        }
+    }
+
+    private fun stopDownloadVoiceNote(messageId: MessageId, voiceNote: VoiceNote) {
+        makeRequest {
+            val fileId = voiceNote.file.id
+            fileDownloadManager.cancelDownloadById(fileId)
+            fileIdToMessageIdMap.remove(fileId)
+        }
+    }
+
+
+    private fun subscribePhotoDownloads() {
         makeRequest {
             fileDownloadManager
-                .downloadedFlow
+                .getDownloadedFileFlow(File.Type.Photo)
+                .filterNot { it.localFile.needBeDownloaded }
                 .onEach { file ->
-                    if (!file.localFile.needBeDownloaded) {
-                        val fileId = file.id
-                        val messageId = fileIdToMessageIdMap[fileId]
+                    val fileId = file.id
+                    val messageId = fileIdToMessageIdMap[fileId]
 
-                        // TODO: refactoring
-                        val messages = state.value.messages.map { card ->
-                            if (card.id == messageId) {
-                                card.copy(
-                                    files = card.files.map { fileInternal ->
-                                        if (fileInternal.id == fileId) {
-                                            file
-                                        } else {
-                                            fileInternal
-                                        }
-                                    }
+                    val messages = state.value.messages.mapFirst(
+                        condition = { it.id == messageId },
+                        transform = { card ->
+                            card.copy(
+                                files = card.files.mapFirst(
+                                    condition = { it.id == fileId },
+                                    transform = { file }
                                 )
-                            } else {
-                                card
+                            )
+                        }
+                    )
+
+                    setState { copy(messages = messages) }
+                }
+                .launchIn(viewModelScope)
+        }
+    }
+
+    private fun subscribeVoiceNoteDownloads() {
+        makeRequest {
+            fileDownloadManager
+                .getDownloadedFileFlow(File.Type.VoiceNote)
+                .onEach { file ->
+                    fileIdToMessageIdMap[file.id]?.let { messageId ->
+                        changeMessageState(messageId) { card ->
+                            card.copy(
+                                voiceNote = card.voiceNote?.copy(
+                                    file = file,
+                                ),
+                                playingStatus = file.localFile.getPlayingStatus(),
+                                progress = file.localFile.downloadProgress,
+                            ).also {
+                                println(it.id.value.toString() + " " + it.playingStatus)
                             }
                         }
-
-                        setState { copy(messages = messages) }
                     }
                 }
                 .launchIn(viewModelScope)
@@ -268,6 +353,24 @@ class ChatViewModel(
         }
     }
 
+    private fun playVoice(messageId: MessageId, voiceNote: VoiceNote) {
+        setState {
+            copy(
+                voiceNotePlayerState = voiceNotePlayerState.copy(
+                    isPlaying = true,
+                    file = voiceNote.file.localFile.path,
+                    messageId = messageId,
+                )
+            )
+        }
+
+        changeMessageState(messageId) {
+            it.copy(
+                playingStatus = PlayingStatus.Playing
+            )
+        }
+    }
+
     private fun mergeMessagesToCard(messages: List<MessageCard>): MessageCard? {
         if (messages.size <= 1) {
             return messages.firstOrNull()
@@ -276,6 +379,25 @@ class ChatViewModel(
         return messages.first().copy(
             files = messages.flatMap { it.files }
         )
+    }
+
+    private fun changeMessageState(messageId: MessageId, changes: (MessageCard) -> MessageCard) {
+        val messages = state.value.messages.mapFirst(
+            condition = { it.id == messageId },
+            transform = { card ->
+                changes(card)
+            }
+        )
+
+        setState { copy(messages = messages) }
+    }
+
+    private fun LocalFile.getPlayingStatus(): PlayingStatus {
+        return when {
+            this.isDownloadingActive -> PlayingStatus.Downloading
+            this.needBeDownloaded -> PlayingStatus.NeedDownload
+            else -> PlayingStatus.Stop
+        }
     }
 
     companion object {

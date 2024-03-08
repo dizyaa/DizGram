@@ -5,11 +5,13 @@ import dev.dizyaa.dizgram.core.telegram.TdRepository
 import dev.dizyaa.dizgram.feature.user.domain.User
 import dev.dizyaa.dizgram.feature.user.domain.UserId
 import dev.dizyaa.dizgram.feature.user.domain.toDomain
+import kotlinx.coroutines.CoroutineScope
 import org.drinkless.td.libcore.telegram.TdApi
 
 class TelegramUserRepository(
-    context: TdContext
-): TdRepository(context), UserRepository {
+    context: TdContext,
+    coroutineScope: CoroutineScope,
+): TdRepository(context, coroutineScope), UserRepository {
 
     override suspend fun getUserById(userId: UserId): User {
         return execute<TdApi.User>(TdApi.GetUser(userId.value)).toDomain()

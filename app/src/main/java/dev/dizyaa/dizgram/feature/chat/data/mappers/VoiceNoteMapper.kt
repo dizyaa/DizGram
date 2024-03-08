@@ -6,5 +6,5 @@ import org.drinkless.td.libcore.telegram.TdApi.VoiceNote
 fun VoiceNote.toDomain() = dev.dizyaa.dizgram.feature.chat.domain.VoiceNote(
     file = voice.toDomain(),
     duration = duration,
-    waveform = waveform.toList(),
+    waveform = waveform.toList().map { it.toInt() },
 )

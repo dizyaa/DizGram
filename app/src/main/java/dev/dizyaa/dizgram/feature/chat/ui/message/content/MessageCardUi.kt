@@ -1,6 +1,7 @@
 package dev.dizyaa.dizgram.feature.chat.ui.message.content
 
 import androidx.compose.runtime.Composable
+import dev.dizyaa.dizgram.feature.chat.ui.PlayingVoiceNoteWrapper
 import dev.dizyaa.dizgram.feature.chat.ui.message.BaseMessage
 import dev.dizyaa.dizgram.feature.chat.ui.message.PhotoCarouselInMessage
 import dev.dizyaa.dizgram.feature.chat.ui.model.MessageCard
@@ -8,6 +9,7 @@ import dev.dizyaa.dizgram.feature.chat.ui.model.MessageCard
 @Composable
 fun MessageCardUi(
     messageCard: MessageCard,
+    playingVoiceNoteWrapper: PlayingVoiceNoteWrapper,
 ) {
     BaseMessage(
         text = messageCard.text,
@@ -19,9 +21,21 @@ fun MessageCardUi(
 
             messageCard.voiceNote?.let {
                 VoiceContent(
-                    isPlaying = false,
+                    playingStatus = messageCard.playingStatus,
                     voiceNote = it,
-                    onClick = { }
+                    playOnClick = {
+                        playingVoiceNoteWrapper.play(messageCard.id, it)
+                    },
+                    pauseOnClick = {
+                        playingVoiceNoteWrapper.pause(messageCard.id, it)
+                    },
+                    downloadOnClick = {
+                        playingVoiceNoteWrapper.download(messageCard.id, it)
+                    },
+                    stopDownloadOnClick = {
+                        playingVoiceNoteWrapper.stopDownload(messageCard.id, it)
+                    },
+                    downloadProgress = messageCard.progress,
                 )
             }
         }

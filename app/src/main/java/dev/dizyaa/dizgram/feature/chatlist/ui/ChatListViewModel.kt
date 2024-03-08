@@ -5,6 +5,7 @@ import dev.dizyaa.dizgram.core.downloader.FileDownloadManager
 import dev.dizyaa.dizgram.core.uihelpers.StateViewModel
 import dev.dizyaa.dizgram.feature.chat.domain.Chat
 import dev.dizyaa.dizgram.feature.chat.domain.ChatId
+import dev.dizyaa.dizgram.feature.chat.domain.File
 import dev.dizyaa.dizgram.feature.chat.domain.FileId
 import dev.dizyaa.dizgram.feature.chat.domain.isUser
 import dev.dizyaa.dizgram.feature.chat.domain.needBeDownloaded
@@ -15,6 +16,7 @@ import dev.dizyaa.dizgram.feature.chatlist.ui.model.ChatCard
 import dev.dizyaa.dizgram.feature.user.data.UserRepository
 import dev.dizyaa.dizgram.feature.user.domain.User
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
@@ -61,7 +63,7 @@ class ChatListViewModel(
                     card.sizedPhoto?.small?.let {
                         if (it.localFile.needBeDownloaded) {
                             fileIdToChatIdMap[it.id] = card.id
-                            fileDownloadManager.download(it.id)
+                            fileDownloadManager.downloadById(it.id, File.Type.Photo)
                         }
                     }
 
@@ -85,7 +87,8 @@ class ChatListViewModel(
 
         makeRequest {
             fileDownloadManager
-                .downloadedFlow
+                .getDownloadedFileFlow(File.Type.Photo)
+                .filterNot { it.localFile.needBeDownloaded }
                 .onEach {
                     val chatId = fileIdToChatIdMap[it.id] ?: return@onEach
                     updateChat(

@@ -5,4 +5,5 @@
 - stickers and animated emoji
 - GIFs
 - videos
-- another files (like .docs)
+- another files (.pdf, .txt)(like download button)
+- author message in group chat

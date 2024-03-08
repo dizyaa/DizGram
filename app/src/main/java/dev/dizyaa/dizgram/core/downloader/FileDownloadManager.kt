@@ -5,7 +5,14 @@ import dev.dizyaa.dizgram.feature.chat.domain.FileId
 import kotlinx.coroutines.flow.Flow
 
 interface FileDownloadManager {
-    val downloadedFlow: Flow<File>
+    fun getDownloadedFileFlow(
+        type: File.Type,
+        allowUnknownType: Boolean = false
+    ): Flow<File>
 
-    suspend fun download(id: FileId)
+    /**
+     * Just trigger downloader manager to download. Final file will emit in [getDownloadedFileFlow]
+     */
+    suspend fun downloadById(id: FileId, type: File.Type)
+    suspend fun cancelDownloadById(id: FileId)
 }

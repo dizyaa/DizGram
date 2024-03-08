@@ -55,6 +55,9 @@ abstract class StateViewModel<
     }
 
     fun setEvent(event: Event) {
+        Timber
+            .tag("onEvent")
+            .d(event.toString())
         viewModelScope.launch { _event.emit(event) }
     }
 

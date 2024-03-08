@@ -14,6 +14,7 @@ import dev.dizyaa.dizgram.feature.chat.domain.MiniThumbnail
 import dev.dizyaa.dizgram.feature.chat.domain.RemoteFile
 import dev.dizyaa.dizgram.feature.chat.domain.SendingStatus
 import dev.dizyaa.dizgram.feature.chat.domain.SizedPhoto
+import dev.dizyaa.dizgram.feature.chat.ui.model.Progress
 import dev.dizyaa.dizgram.feature.user.domain.UserId
 import org.drinkless.td.libcore.telegram.TdApi
 import org.drinkless.td.libcore.telegram.TdApi.MessageSenderChat
@@ -50,17 +51,19 @@ fun TdApi.File.toDomain(): File {
     return File(
         id = FileId(this.id),
         size = this.size,
-        localFile = this.local.toDomain(),
+        localFile = this.local.toDomain(this.size),
         remoteFile = this.remote.toDomain(),
+        type = File.Type.Unknown,
     )
 }
 
-fun TdApi.LocalFile.toDomain(): LocalFile {
+fun TdApi.LocalFile.toDomain(size: Int): LocalFile {
     return LocalFile(
         path = this.path,
         isDownloadingActive = isDownloadingActive,
         isDownloadingCompleted = isDownloadingCompleted,
         canBeDownloaded = canBeDownloaded,
+        downloadProgress = Progress(this.downloadedSize / size.toFloat())
     )
 }
 

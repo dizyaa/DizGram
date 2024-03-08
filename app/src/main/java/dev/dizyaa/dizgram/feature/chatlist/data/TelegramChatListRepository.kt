@@ -6,6 +6,7 @@ import dev.dizyaa.dizgram.feature.chat.domain.Chat
 import dev.dizyaa.dizgram.feature.chatlist.data.mappers.toDomain
 import dev.dizyaa.dizgram.feature.chatlist.domain.ChatFilter
 import dev.dizyaa.dizgram.feature.chatlist.domain.ChatUpdate
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapConcat
@@ -16,7 +17,8 @@ import org.drinkless.td.libcore.telegram.TdApi.ChatListFilter
 
 class TelegramChatListRepository(
     context: TdContext,
-): TdRepository(context), ChatListRepository {
+    coroutineScope: CoroutineScope,
+): TdRepository(context, coroutineScope), ChatListRepository {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val chatFilterFlow: Flow<List<ChatFilter>> =
@@ -32,7 +34,6 @@ class TelegramChatListRepository(
             it.chat.toDomain()
         }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     override val chatUpdatesFlow: Flow<ChatUpdate> =
         getUpdatesFlow<TdApi.Update>().mapChatUpdateToDomain()
 

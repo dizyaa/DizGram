@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -19,6 +21,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,8 +37,11 @@ import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.curvedText
 import dev.dizyaa.dizgram.AppTheme
 import dev.dizyaa.dizgram.core.uihelpers.TextRemoteInput
+import dev.dizyaa.dizgram.core.voice_player.VoicePlayer
 import dev.dizyaa.dizgram.feature.chat.domain.ChatId
 import dev.dizyaa.dizgram.feature.chat.domain.InputMessage
+import dev.dizyaa.dizgram.feature.chat.domain.MessageId
+import dev.dizyaa.dizgram.feature.chat.domain.VoiceNote
 import dev.dizyaa.dizgram.feature.chat.ui.message.content.MessageCardUi
 import dev.dizyaa.dizgram.feature.chat.ui.message.content.MessageInputUi
 import dev.dizyaa.dizgram.feature.chat.ui.message.content.MessageUnsupportedUi
@@ -65,6 +71,27 @@ fun ChatDestination(
     )
 }
 
+@Immutable
+class PlayingVoiceNoteWrapper(
+    private val onPlayClick: (messageId: MessageId, voiceNote: VoiceNote) -> Unit,
+    private val onPauseClick: (messageId: MessageId, voiceNote: VoiceNote) -> Unit,
+    private val onDownloadClick: (messageId: MessageId, voiceNote: VoiceNote) -> Unit,
+    private val onStopDownloadClick: (messageId: MessageId, voiceNote: VoiceNote) -> Unit,
+) {
+    fun play(messageId: MessageId, voiceNote: VoiceNote) {
+        onPlayClick(messageId, voiceNote)
+    }
+    fun pause(messageId: MessageId, voiceNote: VoiceNote) {
+        onPauseClick(messageId, voiceNote)
+    }
+    fun download(messageId: MessageId, voiceNote: VoiceNote) {
+        onDownloadClick(messageId, voiceNote)
+    }
+    fun stopDownload(messageId: MessageId, voiceNote: VoiceNote) {
+        onStopDownloadClick(messageId, voiceNote)
+    }
+}
+
 @Composable
 fun ChatUi(
     state: ChatContract.State,
@@ -73,6 +100,7 @@ fun ChatUi(
     onEvent: (ChatContract.Event) -> Unit,
 ) {
     val scalingLazyListState = rememberScalingLazyListState()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         effectFlow.collect {
@@ -81,6 +109,32 @@ fun ChatUi(
                 else -> Unit
             }
         }
+    }
+
+    val playingVoiceNoteWrapper = remember {
+        PlayingVoiceNoteWrapper(
+            onPauseClick = { messageId, voiceNote ->
+                onEvent(ChatContract.Event.PauseVoiceNoteClick(messageId, voiceNote))
+            },
+            onPlayClick = { messageId, voiceNote ->
+                onEvent(ChatContract.Event.PlayVoiceNoteClick(messageId, voiceNote))
+            },
+            onDownloadClick = { messageId, voiceNote ->
+                onEvent(ChatContract.Event.DownloadVoiceNoteClick(messageId, voiceNote))
+            },
+            onStopDownloadClick =  { messageId, voiceNote ->
+                onEvent(ChatContract.Event.StopDownloadVoiceNoteClick(messageId, voiceNote))
+            }
+        )
+    }
+
+    val voicePlayer = remember {
+        VoicePlayer(context)
+    }
+
+    DisposableEffect(state.voiceNotePlayerState) {
+        voicePlayer.updateState(state.voiceNotePlayerState)
+        onDispose {}
     }
 
     Scaffold(
@@ -111,7 +165,8 @@ fun ChatUi(
                 inputMessage = state.inputTextMessage,
                 onSendMessageClick = {
                     onEvent(ChatContract.Event.SendMessageClick)
-                }
+                },
+                playingVoiceNoteWrapper = playingVoiceNoteWrapper,
             )
 
             if (state.canSendMessage) {
@@ -138,6 +193,7 @@ private fun MessageList(
     onMessageClick: (MessageCard) -> Unit,
     onNextPageRequire: () -> Unit,
     onSendMessageClick: () -> Unit,
+    playingVoiceNoteWrapper: PlayingVoiceNoteWrapper,
     state: ScalingLazyListState,
     modifier: Modifier = Modifier
 ) {
@@ -175,7 +231,8 @@ private fun MessageList(
         ) {
             MessageListItem(
                 messageCard = it,
-                onClick = { onMessageClick(it) }
+                onClick = { onMessageClick(it) },
+                playingVoiceNoteWrapper = playingVoiceNoteWrapper,
             )
         }
     }
@@ -212,11 +269,13 @@ private fun ScalingLazyListState.OnBottomReached(
 @Composable
 private fun MessageListItem(
     messageCard: MessageCard,
+    playingVoiceNoteWrapper: PlayingVoiceNoteWrapper,
     onClick: () -> Unit,
 ) {
     when (messageCard.type) {
         MessageCardType.TextWithMedia -> MessageCardUi(
             messageCard = messageCard,
+            playingVoiceNoteWrapper = playingVoiceNoteWrapper,
         )
         MessageCardType.Unsupported -> MessageUnsupportedUi(
             onClick = onClick,

@@ -5,6 +5,7 @@ import dev.dizyaa.dizgram.core.telegram.TdRepository
 import dev.dizyaa.dizgram.feature.auth.domain.AuthStatus
 import dev.dizyaa.dizgram.feature.configuration.Configuration
 import dev.dizyaa.dizgram.feature.datagates.DataGatesManager
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.drinkless.td.libcore.telegram.TdApi
@@ -13,7 +14,8 @@ class TelegramAuthRepository(
     private val dataGatesManager: DataGatesManager,
     private val configuration: Configuration,
     context: TdContext,
-): TdRepository(context), AuthRepository {
+    coroutineScope: CoroutineScope,
+): TdRepository(context, coroutineScope), AuthRepository {
 
     private val authorizationState = getUpdatesFlow<TdApi.UpdateAuthorizationState>()
 
