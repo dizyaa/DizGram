@@ -5,39 +5,23 @@ import androidx.lifecycle.viewModelScope
 import dev.dizyaa.dizgram.core.uihelpers.StateViewModel
 import dev.dizyaa.dizgram.feature.auth.data.AuthRepository
 import dev.dizyaa.dizgram.feature.auth.domain.AuthStatus
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 class AuthViewModel(
     private val repository: AuthRepository,
 ): StateViewModel<AuthContract.State, AuthContract.Event, AuthContract.Effect>() {
 
-    private val authStatus = repository.authStatus
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = AuthStatus.WaitParams,
-        )
-
     init {
-        subscribeAuthStatusForUiState()
-
+        handleAuthStatus()
         makeRequest {
-            authStatus
-                .collect {
-                    when (it) {
-                        AuthStatus.WaitEncryptedKey -> repository.loadEncryptedKey()
-                        AuthStatus.WaitParams -> repository.loadParams()
-                        else -> Unit
-                    }
-                }
+            processAuthStatus(repository.getAuthStatus())
         }
     }
 
     override fun setInitialState() = AuthContract.State(
         isLoading = false,
-        authStatus = AuthStatus.WaitParams,
+        authStatus = AuthStatus.Closed,
     )
 
     override fun handleEvents(event: AuthContract.Event) {
@@ -58,7 +42,11 @@ class AuthViewModel(
 
     private fun enterByPhoneNumber(phoneNumber: String) {
         if (phoneNumber.isNotBlank() && phoneNumber.isDigitsOnly()) {
-            subscribeAuthStatusForProcess(phoneNumber)
+            makeRequest {
+                if (repository.getAuthStatus() == AuthStatus.WaitPhoneNumber) {
+                    repository.authByPhoneNumber(phoneNumber)
+                }
+            }
         }
     }
 
@@ -78,41 +66,47 @@ class AuthViewModel(
         }
     }
 
-    private fun subscribeAuthStatusForUiState() {
+    private fun handleAuthStatus() {
         makeRequest {
-            authStatus
-                .filter {
-                    when (it) {
-                        AuthStatus.Ready,
-                        AuthStatus.WaitPhoneNumber,
-                        AuthStatus.WaitCode,
-                        AuthStatus.WaitOtherDeviceConfirmation,
-                        AuthStatus.WaitRegistration,
-                        AuthStatus.WaitPassword -> true
-                        else -> false
-                    }
-                }
-                .collect {
-                    setState { copy(authStatus = it) }
-
-                    if (it == AuthStatus.Ready) {
-                        setEffect { AuthContract.Effect.Navigation.ChatList }
-                    }
-                }
+            repository.authStatus
+                .onEach { processAuthStatus(it) }
+                .launchIn(viewModelScope)
         }
     }
 
-    private fun subscribeAuthStatusForProcess(
-        phoneNumber: String
-    ) {
+    private fun processAuthStatus(authStatus: AuthStatus) {
+        when (authStatus) {
+            AuthStatus.Ready,
+            AuthStatus.WaitPhoneNumber,
+            AuthStatus.WaitCode,
+            AuthStatus.WaitOtherDeviceConfirmation,
+            AuthStatus.WaitRegistration,
+            AuthStatus.WaitPassword -> setAuthStatus(authStatus)
+            AuthStatus.WaitEncryptedKey -> loadEncryptedKey()
+            AuthStatus.WaitParams -> loadParams()
+            AuthStatus.Closed,
+            AuthStatus.Closing,
+            AuthStatus.LoggingOut -> Unit
+        }
+    }
+
+    private fun loadEncryptedKey() {
         makeRequest {
-            authStatus
-                .collect {
-                    when (it) {
-                        AuthStatus.WaitPhoneNumber -> repository.authByPhoneNumber(phoneNumber)
-                        else -> Unit
-                    }
-                }
+            repository.loadEncryptedKey()
+        }
+    }
+
+    private fun loadParams() {
+        makeRequest {
+            repository.loadParams()
+        }
+    }
+
+    private fun setAuthStatus(authStatus: AuthStatus) {
+        setState { copy(authStatus = authStatus) }
+
+        if (authStatus == AuthStatus.Ready) {
+            setEffect { AuthContract.Effect.Navigation.ChatList }
         }
     }
 }

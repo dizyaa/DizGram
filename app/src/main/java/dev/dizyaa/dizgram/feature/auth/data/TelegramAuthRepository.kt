@@ -14,10 +14,18 @@ class TelegramAuthRepository(
     private val context: TelegramContext,
 ): AuthRepository {
 
-    private val authorizationState = context.getUpdatesFlow<TdApi.UpdateAuthorizationState>()
+    private val authorizationState: Flow<TdApi.UpdateAuthorizationState> =
+        context.getUpdatesFlow<TdApi.UpdateAuthorizationState>()
 
     override val authStatus: Flow<AuthStatus> = authorizationState
-        .map { mapAuthState(it.authorizationState) }
+        .map {
+            println(it.authorizationState)
+            mapAuthState(it.authorizationState)
+        }
+
+    override suspend fun getAuthStatus(): AuthStatus {
+        return mapAuthState(context.execute<TdApi.AuthorizationState>(TdApi.GetAuthorizationState()))
+    }
 
     override suspend fun authByPhoneNumber(phoneNumber: String) {
         setPhoneNumber(phoneNumber)
