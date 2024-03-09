@@ -1,23 +1,20 @@
 package dev.dizyaa.dizgram.core.downloader
 
-import dev.dizyaa.dizgram.core.telegram.TdContext
-import dev.dizyaa.dizgram.core.telegram.TdRepository
+import dev.dizyaa.dizgram.core.telegram.TelegramContext
 import dev.dizyaa.dizgram.feature.chat.domain.File
 import dev.dizyaa.dizgram.feature.chat.domain.FileId
 import dev.dizyaa.dizgram.feature.chatlist.data.mappers.toDomain
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import org.drinkless.td.libcore.telegram.TdApi
 
 class TelegramFileDownloadManager(
-    context: TdContext,
-    coroutineScope: CoroutineScope,
-): TdRepository(context, coroutineScope), FileDownloadManager {
+    private val context: TelegramContext,
+): FileDownloadManager {
 
     private val fileIdToTypeMap: MutableMap<FileId, File.Type> = mutableMapOf()
-    private val flowUpdatedFile: Flow<File> = getUpdatesFlow<TdApi.UpdateFile>()
+    private val flowUpdatedFile: Flow<File> = context.getUpdatesFlow<TdApi.UpdateFile>()
         .map { it.file.toDomain() }
 
     override fun getDownloadedFileFlow(type: File.Type, allowUnknownType: Boolean): Flow<File> =
@@ -32,7 +29,7 @@ class TelegramFileDownloadManager(
     override suspend fun downloadById(id: FileId, type: File.Type) {
         fileIdToTypeMap[id] = type
 
-        execute<TdApi.File>(
+        context.execute<TdApi.File>(
             TdApi.DownloadFile(
                 id.value,
                 16,
@@ -44,7 +41,7 @@ class TelegramFileDownloadManager(
     }
 
     override suspend fun cancelDownloadById(id: FileId) {
-        execute<TdApi.Ok>(
+        context.execute<TdApi.Ok>(
             TdApi.CancelDownloadFile(
                 id.value,
                 false

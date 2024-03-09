@@ -1,27 +1,32 @@
 package dev.dizyaa.dizgram.core.telegram
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.shareIn
+import org.drinkless.td.libcore.telegram.Client
 import org.drinkless.td.libcore.telegram.TdApi
+import timber.log.Timber
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-abstract class TdRepository(
-    private val context: TdContext,
-    private val coroutineScope: CoroutineScope,
-) {
+class TelegramContext {
+
+    val client: Client = Client.create(
+        ::handleResult,
+        ::handleUpdateException,
+        ::handleDefaultException
+    )
+
     /**
      * Execute Telegram function and wait response
      */
-    internal suspend inline fun <reified T: TdApi.Object> execute(
+    suspend inline fun <reified T: TdApi.Object> execute(
         function: TdApi.Function,
         noinline onError: ((TdApi.Error) -> Unit)? = null,
     ) = suspendCoroutine { continuation ->
-        context.client.send(
+        client.send(
             function,
             {
                 when (it) {
@@ -46,10 +51,30 @@ abstract class TdRepository(
         )
     }
 
-    internal inline fun <reified T: TdApi.Update> getUpdatesFlow(): SharedFlow<T> =
-        context.updates.filterIsInstance<T>().shareIn(
-            coroutineScope,
-            started = SharingStarted.Lazily,
-            replay = 0,
+    private val updates: MutableSharedFlow<TdApi.Object> =
+        MutableSharedFlow(
+            replay = 50,
+            extraBufferCapacity = 50,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST
         )
+
+
+    private fun handleResult(obj: TdApi.Object) {
+        updates.tryEmit(obj)
+    }
+
+    private fun handleUpdateException(throwable: Throwable) {
+        Timber.e(throwable)
+    }
+
+    private fun handleDefaultException(throwable: Throwable) {
+        handleUpdateException(throwable)
+    }
+
+    suspend fun close() {
+        execute<TdApi.Ok>(TdApi.Close())
+    }
+
+    internal inline fun <reified T: TdApi.Update> getUpdatesFlow(): Flow<T> =
+        updates.filterIsInstance<T>()
 }

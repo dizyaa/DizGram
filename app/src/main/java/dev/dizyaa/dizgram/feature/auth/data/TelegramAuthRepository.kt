@@ -1,11 +1,9 @@
 package dev.dizyaa.dizgram.feature.auth.data
 
-import dev.dizyaa.dizgram.core.telegram.TdContext
-import dev.dizyaa.dizgram.core.telegram.TdRepository
+import dev.dizyaa.dizgram.core.telegram.TelegramContext
 import dev.dizyaa.dizgram.feature.auth.domain.AuthStatus
 import dev.dizyaa.dizgram.feature.configuration.Configuration
 import dev.dizyaa.dizgram.feature.datagates.DataGatesManager
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.drinkless.td.libcore.telegram.TdApi
@@ -13,11 +11,10 @@ import org.drinkless.td.libcore.telegram.TdApi
 class TelegramAuthRepository(
     private val dataGatesManager: DataGatesManager,
     private val configuration: Configuration,
-    context: TdContext,
-    coroutineScope: CoroutineScope,
-): TdRepository(context, coroutineScope), AuthRepository {
+    private val context: TelegramContext,
+): AuthRepository {
 
-    private val authorizationState = getUpdatesFlow<TdApi.UpdateAuthorizationState>()
+    private val authorizationState = context.getUpdatesFlow<TdApi.UpdateAuthorizationState>()
 
     override val authStatus: Flow<AuthStatus> = authorizationState
         .map { mapAuthState(it.authorizationState) }
@@ -27,11 +24,11 @@ class TelegramAuthRepository(
     }
 
     override suspend fun authByCode(code: String) {
-        execute<TdApi.Object>(TdApi.CheckAuthenticationCode(code))
+        context.execute<TdApi.Object>(TdApi.CheckAuthenticationCode(code))
     }
 
     override suspend fun authByPassword(password: String) {
-        execute<TdApi.Object>(TdApi.CheckAuthenticationPassword(password))
+        context.execute<TdApi.Object>(TdApi.CheckAuthenticationPassword(password))
     }
 
     override suspend fun loadParams() {
@@ -43,7 +40,7 @@ class TelegramAuthRepository(
     }
 
     private suspend fun setPhoneNumber(phoneNumber: String) {
-        execute<TdApi.Ok>(
+        context.execute<TdApi.Ok>(
             TdApi.SetAuthenticationPhoneNumber(
                 phoneNumber,
                 TdApi.PhoneNumberAuthenticationSettings(
@@ -78,11 +75,11 @@ class TelegramAuthRepository(
             )
         )
 
-        execute<TdApi.Ok>(params)
+        context.execute<TdApi.Ok>(params)
     }
 
     private suspend fun checkEncryptionKey() {
-        execute<TdApi.Object>(TdApi.CheckDatabaseEncryptionKey())
+        context.execute<TdApi.Object>(TdApi.CheckDatabaseEncryptionKey())
     }
 
     companion object {
@@ -92,9 +89,12 @@ class TelegramAuthRepository(
 
     private fun mapAuthState(state: TdApi.AuthorizationState): AuthStatus {
         return when (state.constructor) {
-//            TdApi.AuthorizationStateLoggingOut ->
-//            TdApi.AuthorizationStateClosing ->
-//            TdApi.AuthorizationStateClosed ->
+            TdApi.AuthorizationStateLoggingOut.CONSTRUCTOR ->
+                AuthStatus.LoggingOut
+            TdApi.AuthorizationStateClosing.CONSTRUCTOR ->
+                AuthStatus.Closing
+            TdApi.AuthorizationStateClosed.CONSTRUCTOR ->
+                AuthStatus.Closed
             TdApi.AuthorizationStateReady.CONSTRUCTOR ->
                 AuthStatus.Ready
             TdApi.AuthorizationStateWaitTdlibParameters.CONSTRUCTOR ->

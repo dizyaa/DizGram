@@ -9,5 +9,7 @@ enum class AuthStatus {
     WaitEncryptedKey,
     WaitParams,
     Ready,
-
+    LoggingOut,
+    Closing,
+    Closed,
 }

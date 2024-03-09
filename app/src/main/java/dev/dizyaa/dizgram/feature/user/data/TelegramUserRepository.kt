@@ -1,24 +1,21 @@
 package dev.dizyaa.dizgram.feature.user.data
 
-import dev.dizyaa.dizgram.core.telegram.TdContext
-import dev.dizyaa.dizgram.core.telegram.TdRepository
+import dev.dizyaa.dizgram.core.telegram.TelegramContext
 import dev.dizyaa.dizgram.feature.user.domain.User
 import dev.dizyaa.dizgram.feature.user.domain.UserId
 import dev.dizyaa.dizgram.feature.user.domain.toDomain
-import kotlinx.coroutines.CoroutineScope
 import org.drinkless.td.libcore.telegram.TdApi
 
 class TelegramUserRepository(
-    context: TdContext,
-    coroutineScope: CoroutineScope,
-): TdRepository(context, coroutineScope), UserRepository {
+    private val context: TelegramContext,
+): UserRepository {
 
     override suspend fun getUserById(userId: UserId): User {
-        return execute<TdApi.User>(TdApi.GetUser(userId.value)).toDomain()
+        return context.execute<TdApi.User>(TdApi.GetUser(userId.value)).toDomain()
     }
 
     override suspend fun getCurrentUser(): User {
-        return execute<TdApi.User>(TdApi.GetMe()).toDomain()
+        return context.execute<TdApi.User>(TdApi.GetMe()).toDomain()
     }
 
 }

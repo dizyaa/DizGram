@@ -1,12 +1,10 @@
 package dev.dizyaa.dizgram.feature.chatlist.data
 
-import dev.dizyaa.dizgram.core.telegram.TdContext
-import dev.dizyaa.dizgram.core.telegram.TdRepository
+import dev.dizyaa.dizgram.core.telegram.TelegramContext
 import dev.dizyaa.dizgram.feature.chat.domain.Chat
 import dev.dizyaa.dizgram.feature.chatlist.data.mappers.toDomain
 import dev.dizyaa.dizgram.feature.chatlist.domain.ChatFilter
 import dev.dizyaa.dizgram.feature.chatlist.domain.ChatUpdate
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapConcat
@@ -16,13 +14,12 @@ import org.drinkless.td.libcore.telegram.TdApi
 import org.drinkless.td.libcore.telegram.TdApi.ChatListFilter
 
 class TelegramChatListRepository(
-    context: TdContext,
-    coroutineScope: CoroutineScope,
-): TdRepository(context, coroutineScope), ChatListRepository {
+    private val context: TelegramContext,
+): ChatListRepository {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val chatFilterFlow: Flow<List<ChatFilter>> =
-        getUpdatesFlow<TdApi.UpdateChatFilters>()
+        context.getUpdatesFlow<TdApi.UpdateChatFilters>()
             .flatMapConcat { update ->
                 flow {
                     update.chatFilters.map { it.toDomain() }
@@ -30,15 +27,15 @@ class TelegramChatListRepository(
             }
 
     override val chatsFlow: Flow<Chat> =
-        getUpdatesFlow<TdApi.UpdateNewChat>().map {
+        context.getUpdatesFlow<TdApi.UpdateNewChat>().map {
             it.chat.toDomain()
         }
 
     override val chatUpdatesFlow: Flow<ChatUpdate> =
-        getUpdatesFlow<TdApi.Update>().mapChatUpdateToDomain()
+        context.getUpdatesFlow<TdApi.Update>().mapChatUpdateToDomain()
 
     override suspend fun loadChatsByFilter(filter: ChatFilter) {
-        execute<TdApi.Ok>(
+        context.execute<TdApi.Ok>(
             TdApi.LoadChats(
                 if (filter == ChatFilter.Main) {
                     null
